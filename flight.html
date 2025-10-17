@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderGo Flight Search & Booking</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Include jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        // Custom Tailwind Configuration to define the exact teal color
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'tw-teal': '#03a6a6',
+                        /* Main Teal Color */
+                        'tw-dark-teal': '#027a7a',
+                        'tw-light-teal': '#f0ffff',
+                        /* Used for light backgrounds */
+                        'tw-accent': '#F4A261',
+                        /* Secondary Accent Color (Orange/Coral) */
+                    },
+                    fontSize: {
+                        'xxs': '0.6rem',
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F8F8;
+            /* Light gray background matching screenshots */
+            min-height: 100vh;
+        }
+        
+         :root {
+            --tw-teal: #03a6a6;
+            --tw-dark-teal: #027a7a;
+        }
+        /* --- Header & Navigation --- */
+        
+        .nav-link {
+            transition: background-color 0.2s;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            background-color: #ffffff;
+            color: var(--tw-dark-teal);
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* --- Full Search Box Component (For initial search) --- */
+        
+        .search-container {
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        
+        .trip-type-tab {
+            cursor: pointer;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        
+        .trip-type-tab.active {
+            background-color: white;
+            color: var(--tw-dark-teal);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+        }
+        
+        .input-module {
+            min-height: 100px;
+            padding: 18px 20px 18px 25px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .input-module:not([style*="opacity: 0.5"]):hover {
+            background-color: #f7f7f7;
+        }
+        
+        .input-module.active {
+            background-color: #ffffff;
+            border-bottom: 3px solid var(--tw-teal);
+            /* Highlight bottom border */
+            padding-bottom: 15px;
+            /* Adjust padding due to border */
+        }
+        
+        .input-module-label {
+            color: #555;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        
+        .input-module-value {
+            color: #111;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        
+        .input-module-detail {
+            color: #999;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        .search-btn {
+            background-color: var(--tw-teal);
+            box-shadow: 0 4px 15px rgba(3, 166, 166, 0.6);
+            transition: all 0.2s;
+            border-radius: 12px;
+            font-size: 20px;
+            padding: 15px 40px;
+        }
+        
+        .search-btn:hover {
+            background-color: var(--tw-dark-teal);
+            box-shadow: 0 6px 20px rgba(3, 166, 166, 0.8);
+        }
+        /* --- Inline Edit Bar (New Styling) --- */
+        
+        .inline-edit-input {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: border-color 0.2s;
+            color: #333;
+            /* Ensure text is visible in select dropdown */
+        }
+        
+        .inline-edit-input:focus {
+            outline: none;
+            border-color: var(--tw-teal);
+            box-shadow: 0 0 0 2px rgba(3, 166, 166, 0.2);
+        }
+        /* Style for Select dropdowns */
+        
+        select.inline-edit-input {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2303a6a6'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 0.75rem 0.75rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding-right: 2.5rem;
+            /* Make space for the icon */
+        }
+        /* --- Flight Results & Filter Specific Styles --- */
+        
+        .filter-box {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .flight-card {
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+            align-items: center;
+        }
+        
+        .flight-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flight-card-middle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .book-btn {
+            background-color: var(--tw-teal);
+            transition: background-color 0.2s;
+            padding: 10px 20px;
+        }
+        
+        .book-btn:hover {
+            background-color: var(--tw-dark-teal);
+        }
+        /* Custom range input styling */
+        
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--tw-teal);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- Custom Modal for Alerts (Essential for no-alert policy) -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl transition-all duration-300 transform scale-95 opacity-0 border border-tw-teal" id="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-tw-teal">System Alert</h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end">
+                <button onclick="closeModal('custom-modal', 'modal-content')" class="bg-tw-teal text-white font-semibold py-2 px-4 rounded-lg hover:bg-tw-dark-teal transition shadow-md">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal (New Component) -->
+    <div id="booking-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+        <div id="booking-content" class="bg-white rounded-xl shadow-2xl max-w-lg w-full transform scale-95 opacity-0 transition-all duration-300">
+
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-tw-teal">Confirm Your Flight</h3>
+                <button onclick="closeModal('booking-modal', 'booking-content')" class="text-gray-500 hover:text-gray-800">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Flight Details Section -->
+            <div id="flight-details-container" class="p-6">
+                <!-- Details populated by JavaScript -->
+            </div>
+
+            <!-- Passenger & Calculation Section -->
+            <div class="p-6 bg-tw-light-teal rounded-b-xl">
+                <div class="mb-4 flex justify-between items-center">
+                    <label for="passenger-count" class="font-semibold text-gray-700">Number of Passengers:</label>
+                    <input type="number" id="passenger-count" value="1" min="1" max="9" class="w-20 text-center border rounded-lg p-2 font-bold text-lg focus:ring-tw-teal focus:border-tw-teal" oninput="calculateTotal()">
+                </div>
+
+                <div class="flex justify-between items-center text-xl font-bold border-t border-gray-300 pt-3 mt-4">
+                    <span class="text-tw-dark-teal">TOTAL AMOUNT:</span>
+                    <span id="total-amount" class="text-3xl text-tw-accent font-extrabold">₹4,500</span>
+                </div>
+
+                <button onclick="generateInvoicePDF()" class="w-full mt-6 book-btn text-white rounded-lg font-bold text-lg shadow-xl">
+                    Confirm Booking & Download Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 1. Header (Navigation Bar - WanderGo Style) -->
+    <header class="sticky top-0 z-20 shadow-md" style="background-color: var(--tw-teal);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Site Name -->
+                <div class="flex-shrink-0">
+                    <!-- Home link updated to simply refresh the page/view -->
+                    <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                        Wander<span class="font-light text-tw-accent">Go</span>
+                    </a>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex space-x-2 text-white">
+                    <!-- Home link updated to simply refresh the page/view -->
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="flight.html" class="nav-link active">✈️Flights</a>
+                    <a href="contact.html" class="nav-link">Contact/Support</a>
+                    <a href="login.html" class="nav-link">Login</a>
+                    <!-- Updated link to show the full header search box -->
+                    <a href="hotel.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition">
+                         🏨Hotels
+                    </a>
+
+                </nav>
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-white hover:text-gray-200 focus:outline-none" onclick="alertModal('Mobile menu functionality coming soon!', 'Menu')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Full Search Box View (Used for initial search or if user clicks 'Flights' in navbar) -->
+        <div id="full-search-view" class="hidden relative z-10 -mt-8 pt-8 pb-40" style="background-color: var(--tw-teal);">
+            <!-- Trip Type Tabs -->
+            <div class="flex space-x-4 mb-4 justify-center md:justify-start max-w-6xl mx-auto pt-10">
+                <div id="one-way-tab" class="trip-type-tab active" onclick="selectTripType('one-way')">ONE WAY</div>
+                <div id="round-trip-tab" class="trip-type-tab" onclick="selectTripType('round-trip')">ROUND TRIP</div>
+                <div id="multi-city-tab" class="trip-type-tab" onclick="selectTripType('multi-city')">MULTI CITY (WP)</div>
+            </div>
+
+            <!-- Search Container (White Box) -->
+            <div class="search-container rounded-2xl overflow-hidden shadow-2xl max-w-6xl mx-auto">
+
+                <!-- Input Fields Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-gray-200 bg-white">
+
+                    <!-- Input 1: FROM City -->
+                    <div id="full-from-input" class="input-module" onclick="activateInput(this, 'full')">
+                        <span class="input-module-label">FROM</span>
+                        <span id="full-from-value" class="input-module-value">New Delhi (DEL)</span>
+                        <span id="full-from-detail" class="input-module-detail">Indira Gandhi International Airport</span>
+                    </div>
+
+                    <!-- Input 2: TO City -->
+                    <div id="full-to-input" class="input-module flex flex-col justify-center" onclick="activateInput(this, 'full')">
+                        <span class="input-module-label">TO</span>
+                        <div class="flex items-center">
+                            <i id="full-to-swap-icon" class="fas fa-exchange-alt text-gray-400 mr-3 text-lg cursor-pointer" onclick="swapLocations(event, 'full')"></i>
+                            <span id="full-to-value" class="input-module-value">Mumbai (BOM)</span>
+                        </div>
+                        <span id="full-to-detail" class="input-module-detail">Chhatrapati Shivaji International</span>
+                    </div>
+
+                    <!-- Input 3: DEPARTURE Date -->
+                    <div id="full-departure-input" class="input-module flex flex-col justify-center" onclick="activateInput(this, 'full')">
+                        <span class="input-module-label">DEPARTURE</span>
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-alt text-gray-400 mr-3 text-lg"></i>
+                            <span id="full-departure-date" class="input-module-value">10 / Oct / 2025</span>
+                        </div>
+                        <span class="input-module-detail">Click to select date</span>
+                    </div>
+
+                    <!-- Input 4: RETURN Date -->
+                    <div id="full-return-input" class="input-module flex flex-col justify-center" onclick="activateInput(this, 'full')" style="opacity: 0.5; cursor: default;">
+                        <span class="input-module-label">RETURN</span>
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-alt text-gray-400 mr-3 text-lg"></i>
+                            <span id="full-return-date" class="input-module-value text-gray-400 font-normal">dd / mm / yyyy</span>
+                        </div>
+                        <span class="input-module-detail text-gray-400">One Way Trip</span>
+                    </div>
+
+                    <!-- Input 5: TRAVELERS & CLASS -->
+                    <div id="full-travelers-input" class="input-module" onclick="activateInput(this, 'full')">
+                        <span class="input-module-label">TRAVELERS & CLASS</span>
+                        <span id="full-travelers-value" class="input-module-value">1 Traveler, Economy</span>
+                        <span class="input-module-detail">1 Traveler, Economy</span>
+                    </div>
+                </div>
+
+                <!-- Search Button Row (Centered Below Inputs) -->
+                <div class="flex justify-center p-5 pt-0 bg-white rounded-b-2xl">
+                    <button onclick="searchFlights('full')" class="search-btn text-white font-bold px-12 transition-transform">
+                        SEARCH <i class="fas fa-search ml-3"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Results View (Visible by default) -->
+        <div id="results-view" class="block mt-4">
+
+            <!-- Query Summary Container - Holds both read-only and editable bars -->
+            <div id="query-summary-container" class="mb-6">
+
+                <!-- Read-Only Summary Bar (Visible by default) -->
+                <div id="summary-bar-read-only" class="flex justify-between items-center bg-white p-4 rounded-xl shadow-lg border-l-4 border-tw-teal">
+                    <!-- Content injected by updateQuerySummary() -->
+                </div>
+
+                <!-- Editable Search Bar (Hidden by default) -->
+                <div id="summary-bar-editable" class="hidden bg-white p-4 rounded-xl shadow-lg border-l-4 border-tw-accent">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+
+                        <!-- FROM Input (Dropdown) -->
+                        <div class="col-span-1">
+                            <label class="input-module-label block mb-1">FROM</label>
+                            <select id="edit-from-input" class="inline-edit-input appearance-none bg-white border pr-8"></select>
+                        </div>
+
+                        <!-- TO Input (Dropdown) -->
+                        <div class="col-span-1">
+                            <label class="input-module-label block mb-1">TO</label>
+                            <select id="edit-to-input" class="inline-edit-input appearance-none bg-white border pr-8"></select>
+                        </div>
+
+                        <!-- DEPARTURE Input (Date) -->
+                        <div class="col-span-1">
+                            <label class="input-module-label block mb-1">DEPARTURE</label>
+                            <input type="date" id="edit-departure-input" class="inline-edit-input">
+                        </div>
+
+                        <!-- TRAVELERS Input (Dropdown) -->
+                        <div class="col-span-1">
+                            <label class="input-module-label block mb-1">TRAVELERS</label>
+                            <select id="edit-travelers-input" class="inline-edit-input appearance-none bg-white border pr-8">
+                                <option value="1">1 Traveler, Economy</option>
+                                <option value="2">2 Travelers, Economy</option>
+                                <option value="3">3 Travelers, Business</option>
+                            </select>
+                        </div>
+
+                        <!-- Search Button -->
+                        <div class="col-span-1">
+                            <button onclick="applyModifiedSearch()" class="w-full search-btn text-white font-bold text-sm py-2.5 shadow-md">
+                                SEARCH
+                            </button>
+                        </div>
+
+                    </div>
+                    <p class="text-xs text-gray-500 mt-3">Note: Currently set to One Way. Use the full search view for Round Trip/Multi-City options.</p>
+                </div>
+
+            </div>
+
+
+            <!-- Filter and Results Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Column 1: Filter Panel (Hidden on small screens) -->
+                <div id="filter-panel" class="lg:col-span-3 hidden lg:block">
+                    <div class="filter-box bg-white p-5 sticky top-20">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Filter Results</h3>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-6">
+                            <h4 class="font-medium text-sm text-gray-700 mb-2">Price Range</h4>
+                            <div class="flex justify-between text-xxs font-semibold text-gray-500">
+                                <span>Min: ₹4,000</span>
+                                <span>Max: ₹12,000</span>
+                            </div>
+                            <input type="range" min="4000" max="12000" value="12000" id="price-slider">
+                        </div>
+
+                        <!-- Stops Filter -->
+                        <div class="mb-6 border-t pt-4">
+                            <h4 class="font-medium text-sm text-gray-700 mb-3">Stops</h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">Non-Stop (8)</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">1 Stop (10)</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">2 Stops (7)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Airlines Filter -->
+                        <div class="mb-6 border-t pt-4">
+                            <h4 class="font-medium text-sm text-gray-700 mb-3">Airlines</h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">AirJet</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">SkyConnect</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">MegaFly</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">Vayu</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">GlobalWings</span>
+                                </label>
+                                <label class="flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" checked class="h-4 w-4 text-tw-teal rounded focus:ring-tw-teal">
+                                    <span class="ml-2">StarLiner</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Apply Filters Button -->
+                        <button onclick="applyFilters()" class="w-full bg-tw-light-teal text-tw-teal border border-tw-teal py-2 rounded-lg font-semibold hover:bg-tw-teal hover:text-white transition">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Column 2: Available Flights Results (Large majority of space) -->
+                <div class="lg:col-span-9">
+                    <!-- Update flight count here -->
+                    <h3 id="flight-count-header" class="text-xl font-bold text-gray-800 mb-4">Available Flights (25 Results)</h3>
+
+                    <!-- Placeholder for dynamically generated flight cards -->
+                    <div id="flight-listings" class="space-y-4">
+                        <!-- Flight cards will be injected here by JavaScript -->
+                    </div>
+
+                    <!-- Explore More Teaser -->
+                    <div class="bg-tw-light-teal border border-tw-teal text-center p-6 rounded-xl text-gray-700 mt-6">
+                        <p class="font-semibold">End of results.</p>
+                        <p class="text-sm">Try modifying your search or filters to see other routes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (WanderGo Style) -->
+    <footer class="bg-tw-dark-teal text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                    Wander<span class="font-light text-tw-accent">Go</span>
+                </a>
+                <p class="text-sm mt-4">Simplifying your travel plans and bookings globally.</p>
+                <div class="flex space-x-3 mt-4">
+                    <i class="fab fa-facebook-f hover:text-tw-teal cursor-pointer"></i>
+                    <i class="fab fa-twitter hover:text-tw-teal cursor-pointer"></i>
+                    <i class="fab fa-linkedin-in hover:text-tw-teal cursor-pointer"></i>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Travel</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-tw-teal">Flights</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Hotels</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Trains</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Deals</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-tw-teal">About Us</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Careers</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Blog</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Partners</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-tw-teal">Help Center</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Contact Support</a></li>
+                    <li><a href="#" class="hover:text-tw-teal">Terms & Privacy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto text-center text-xs text-gray-500 mt-8 pt-4 border-t border-gray-700">
+            &copy; 2025 WanderGo. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- JavaScript Functions for Interactivity -->
+    <script>
+        // --- Shared Mock Data ---
+        const CITIES = [{
+            code: "DEL",
+            name: "New Delhi",
+            airport: "Indira Gandhi International Airport"
+        }, {
+            code: "BOM",
+            name: "Mumbai",
+            airport: "Chhatrapati Shivaji International"
+        }, {
+            code: "BLR",
+            name: "Bengaluru",
+            airport: "Kempegowda International Airport"
+        }, {
+            code: "CCU",
+            name: "Kolkata",
+            airport: "Netaji Subhas Chandra Bose Int'l"
+        }, {
+            code: "MAA",
+            name: "Chennai",
+            airport: "Chennai International Airport"
+        }];
+
+        // --- Flight Data Generation Logic ---
+        const TOTAL_FLIGHTS = 25;
+        const AIRLINES = [{
+            name: "AirJet",
+            prefix: "AJ",
+            icon: 'fas fa-plane text-tw-teal',
+            minPrice: 4500,
+            maxPrice: 7000
+        }, {
+            name: "SkyConnect",
+            prefix: "SC",
+            icon: 'fas fa-feather-alt text-red-500',
+            minPrice: 5000,
+            maxPrice: 8500
+        }, {
+            name: "MegaFly",
+            prefix: "MF",
+            icon: 'fas fa-fighter-jet text-blue-500',
+            minPrice: 5500,
+            maxPrice: 9000
+        }, {
+            name: "Vayu",
+            prefix: "VU",
+            icon: 'fas fa-wind text-green-500',
+            minPrice: 4000,
+            maxPrice: 6500
+        }, {
+            name: "GlobalWings",
+            prefix: "GW",
+            icon: 'fas fa-globe-americas text-indigo-500',
+            minPrice: 6000,
+            maxPrice: 10000
+        }, {
+            name: "StarLiner",
+            prefix: "SL",
+            icon: 'fas fa-star text-yellow-600',
+            minPrice: 7000,
+            maxPrice: 12000
+        }, ];
+        const STOPS = [{
+            count: 0,
+            text: "Non-stop"
+        }, {
+            count: 1,
+            text: "1 Stop"
+        }, {
+            count: 2,
+            text: "2 Stops"
+        }];
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateTime(startHour) {
+            const hour = getRandomInt(startHour, startHour + 3) % 24;
+            const minute = [0, 15, 30, 45][getRandomInt(0, 3)];
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+
+        function calculateDuration(stopsCount) {
+            let durationHours = 3;
+            let durationMinutes = 30;
+
+            if (stopsCount === 1) {
+                durationHours += 1;
+                durationMinutes += getRandomInt(30, 90);
+            } else if (stopsCount === 2) {
+                durationHours += 2;
+                durationMinutes += getRandomInt(30, 150);
+            }
+            durationHours += Math.floor(durationMinutes / 60);
+            durationMinutes %= 60;
+            return `${durationHours}h ${durationMinutes}m`;
+        }
+
+        function generateMockFlights(count) {
+            const flights = [];
+            for (let i = 1; i <= count; i++) {
+                const airlineConfig = AIRLINES[getRandomInt(0, AIRLINES.length - 1)];
+                const stopConfig = STOPS[getRandomInt(0, STOPS.length - 1)];
+                const price = getRandomInt(airlineConfig.minPrice, airlineConfig.maxPrice);
+                const depHour = getRandomInt(6, 23);
+                const depTime = generateTime(depHour);
+                const durationString = calculateDuration(stopConfig.count);
+                const [h, m] = durationString.split('h ').map(x => parseInt(x.replace('m', '')));
+                const durationMinutes = h * 60 + m;
+                let arrMinutes = (depHour * 60 + parseInt(depTime.slice(3))) + durationMinutes;
+                const arrHour = Math.floor((arrMinutes / 60) % 24);
+                const arrMinute = arrMinutes % 60;
+                const arrTime = `${String(arrHour).padStart(2, '0')}:${String(arrMinute).padStart(2, '0')}`;
+
+                flights.push({
+                    id: i,
+                    airline: airlineConfig.name,
+                    flightNumber: `${airlineConfig.prefix} ${getRandomInt(100, 999)}`,
+                    price: Math.round(price / 100) * 100, // This is the final displayed price before discount/pax
+                    stops: stopConfig.text,
+                    duration: durationString,
+                    depTime: depTime,
+                    arrTime: arrTime,
+                    depCode: "DEL",
+                    arrCode: "BOM",
+                    class: "Economy",
+                    baggage: stopConfig.count === 0 ? "15kg check-in, 7kg cabin" : "20kg check-in, 7kg cabin",
+                    meals: stopConfig.count === 0 ? "Paid snacks" : "Complimentary meal",
+                    icon: airlineConfig.icon
+                });
+            }
+            flights.sort((a, b) => a.price - b.price);
+            return flights;
+        }
+
+        let flightsData = generateMockFlights(TOTAL_FLIGHTS);
+        let selectedFlight = null;
+
+        // Global state for current search parameters (for the summary bar)
+        let currentSearch = {
+            from: "New Delhi (DEL)",
+            to: "Mumbai (BOM)",
+            depDate: "10 / Oct / 2025",
+            depDateYMD: "2025-10-10", // YYYY-MM-DD format for date input
+            travelers: "1 Traveler, Economy",
+            travelerValue: "1", // Corresponds to select option value
+            tripType: "One Way"
+        };
+
+
+        // --- Utility Functions ---
+
+        // Function to format number as Indian Rupees (INR) for ON-SCREEN DISPLAY (Uses ₹ and ,)
+        function formatRupees(amount) {
+            // Uses standard Indian number grouping (lakhs/crores) and comma separator for on-screen display.
+            const formatted = Number(amount).toLocaleString('en-IN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+                style: 'currency',
+                currency: 'INR'
+            });
+            return formatted;
+        }
+
+        // Function to format number for PDF (Uses Rs. and space instead of ₹ and , to avoid '₹' and ',' rendering issues)
+        const formatForPdf = (amount) => {
+            // 1. Get the raw number formatted with INR grouping (e.g., "1,00,000")
+            const formatted = Number(amount).toLocaleString('en-IN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+            // 2. Replace the comma separator (,) with a space ( ) for PDF safety
+            // This maintains the correct grouping (lakhs/crores) while avoiding the '&' bug.
+            const pdfSafeAmount = formatted.replace(/,/g, ' ');
+            // 3. Prepend the safe currency text
+            return `Rs. ${pdfSafeAmount}`;
+        };
+
+        // Function to show custom alert modal
+        function alertModal(message, title = "Alert") {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            const modal = document.getElementById('custom-modal');
+            const modalContent = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+            // Trigger transition effects
+            setTimeout(() => {
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        // Function to close any modal
+        function closeModal(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = document.getElementById(contentId);
+
+            modalContent.classList.remove('opacity-100', 'scale-100');
+            modalContent.classList.add('opacity-0', 'scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Wait for transition to complete
+        }
+
+        // Function to populate the city dropdowns in the inline editor
+        function populateCityDropdown(selectElement, currentValue) {
+            selectElement.innerHTML = '';
+            // Extract the city code (e.g., DEL from "New Delhi (DEL)")
+            const currentCodeMatch = currentValue.match(/\(([^)]+)\)/);
+            const currentCode = currentCodeMatch ? currentCodeMatch[1] : null;
+
+            CITIES.forEach(city => {
+                const option = document.createElement('option');
+                // The full descriptive text for the user to see
+                option.textContent = `${city.name} (${city.code})`;
+                // Use the full descriptive text as the value
+                option.value = option.textContent;
+
+                // Select the option that matches the current search value
+                if (city.code === currentCode) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        // --- Search & Edit Bar Logic ---
+
+        // Toggles between read-only and editable query summary bar
+        function toggleEditBar(isEditing) {
+            const readOnlyBar = document.getElementById('summary-bar-read-only');
+            const editableBar = document.getElementById('summary-bar-editable');
+
+            if (isEditing) {
+                // Show editable, hide read-only
+                readOnlyBar.classList.add('hidden');
+                editableBar.classList.remove('hidden');
+
+                // Get dropdown elements
+                const fromSelect = document.getElementById('edit-from-input');
+                const toSelect = document.getElementById('edit-to-input');
+
+                // Populate dropdowns and set initial values based on current search
+                populateCityDropdown(fromSelect, currentSearch.from);
+                populateCityDropdown(toSelect, currentSearch.to);
+
+                // Set other values
+                document.getElementById('edit-departure-input').value = currentSearch.depDateYMD;
+                document.getElementById('edit-travelers-input').value = currentSearch.travelerValue;
+
+            } else {
+                // Show read-only, hide editable
+                readOnlyBar.classList.remove('hidden');
+                editableBar.classList.add('hidden');
+                updateQuerySummary(); // Ensure summary reflects currentSearch
+            }
+        }
+
+        // Function to update the read-only summary bar
+        function updateQuerySummary() {
+            const summaryBar = document.getElementById('summary-bar-read-only');
+
+            // Note: date format is "DD / Month / YYYY"
+            const dateParts = currentSearch.depDate.split('/');
+            const depDay = dateParts[0].trim();
+            const depMonth = dateParts[1].trim();
+
+            summaryBar.innerHTML = `
+                <!-- Left Side: Summary Details -->
+                <div class="flex items-center space-x-4">
+                    <div class="bg-tw-light-teal text-tw-teal p-3 rounded-full text-center font-bold min-w-[70px]">
+                        <p class="text-sm">${depDay}</p>
+                        <p class="text-xs uppercase -mt-1">${depMonth}</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-xl font-extrabold text-gray-800">${currentSearch.from.split(' ')[0]} to ${currentSearch.to.split(' ')[0]}</p>
+                        <p class="text-sm text-gray-600">${currentSearch.tripType} | ${currentSearch.travelers}</p>
+                    </div>
+                </div>
+
+                <!-- Right Side: Modify Button -->
+                <button onclick="toggleEditBar(true)" class="bg-tw-accent text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#e49658] transition shadow-md text-sm">
+                    <i class="fas fa-edit mr-2"></i> Modify Search
+                </button>
+            `;
+            // Update the flight count header
+            document.getElementById('flight-count-header').textContent = `Available Flights (${flightsData.length} Results)`;
+        }
+
+        // Handles search initiation from the full header view
+        function searchFlights(view) {
+            // This function is for the initial large search box submission
+            hideFullSearchPage();
+
+            // Mock flight data update here if needed, but we keep the mock results static for now
+            // flightsData = generateMockFlights(TOTAL_FLIGHTS); 
+
+            // Re-render
+            updateQuerySummary();
+            renderFlightListings();
+
+            alertModal("Initial search performed! Showing results for Delhi to Mumbai.", "Search Complete");
+        }
+
+        // Handles search initiation from the inline editable bar
+        function applyModifiedSearch() {
+            const fromSelect = document.getElementById('edit-from-input');
+            const toSelect = document.getElementById('edit-to-input');
+            const depDateInput = document.getElementById('edit-departure-input');
+            const travelersSelect = document.getElementById('edit-travelers-input');
+
+            // Read the selected text (e.g., "New Delhi (DEL)")
+            const newFromText = fromSelect.value;
+            const newToText = toSelect.value;
+            const newTravelersText = travelersSelect.options[travelersSelect.selectedIndex].text;
+
+            // Process Date
+            const newDepDateYMD = depDateInput.value; // YYYY-MM-DD
+            if (!newDepDateYMD) {
+                alertModal("Please select a departure date.", "Date Missing");
+                return;
+            }
+            const dateParts = newDepDateYMD.split('-');
+            const dateReadable = `${dateParts[2]} / ${new Date(newDepDateYMD).toLocaleString('en-us', { month: 'short' })} / ${dateParts[0]}`;
+
+
+            if (newFromText === newToText) {
+                alertModal("The Origin and Destination airports cannot be the same. Please choose different cities.", "Search Error");
+                return;
+            }
+
+            // Update global state
+            currentSearch.from = newFromText;
+            currentSearch.to = newToText;
+            currentSearch.depDate = dateReadable;
+            currentSearch.depDateYMD = newDepDateYMD;
+            currentSearch.travelers = newTravelersText;
+            currentSearch.travelerValue = travelersSelect.value;
+
+            // Switch back to read-only view and re-render results
+            toggleEditBar(false);
+
+            // --- MOCK NEW SEARCH RESULTS ---
+            flightsData = generateMockFlights(getRandomInt(15, 30)); // Change count to show a refresh
+            renderFlightListings();
+
+            alertModal(`Search modified successfully! New results for ${currentSearch.from} to ${currentSearch.to} on ${currentSearch.depDate} have been loaded.`, "Search Updated");
+        }
+
+
+        // Hides the full search box and shows the results view (used for initial load or navigation)
+        function hideFullSearchPage() {
+            document.getElementById('full-search-view').classList.add('hidden');
+            document.getElementById('results-view').classList.remove('hidden');
+        }
+
+        // Shows the full search box for a completely new search
+        function showFullSearchPage() {
+            document.getElementById('full-search-view').classList.remove('hidden');
+            document.getElementById('results-view').classList.add('hidden');
+            document.getElementById('full-search-view').scrollIntoView({
+                behavior: 'smooth'
+            });
+            alertModal("Showing full search view. Note: The full search doesn't update the results instantly in this demo. Use the 'Modify Search' bar for that.", "Full Search Mode");
+        }
+
+
+        // --- Booking and PDF Logic ---
+
+        function bookFlight(id) {
+            selectedFlight = flightsData.find(f => f.id === id);
+            if (!selectedFlight) return;
+
+            const container = document.getElementById('flight-details-container');
+            container.innerHTML = `
+                <div class="flex items-center justify-between border-b pb-4 mb-4">
+                    <div>
+                        <p class="text-lg font-bold text-gray-800">${selectedFlight.airline} (${selectedFlight.flightNumber})</p>
+                        <p class="text-sm text-gray-500">${currentSearch.from} to ${currentSearch.to}</p>
+                    </div>
+                    <p class="text-3xl font-extrabold text-tw-teal">${formatRupees(selectedFlight.price)}</p>
+                </div>
+                
+                <div class="space-y-3 text-sm">
+                    <p><i class="fas fa-calendar-alt text-tw-teal w-5 mr-2"></i> Date: <span class="font-semibold">${currentSearch.depDate}</span></p>
+                    <p><i class="fas fa-clock text-tw-teal w-5 mr-2"></i> Departure: <span class="font-semibold">${selectedFlight.depTime} (${selectedFlight.depCode})</span></p>
+                    <p><i class="fas fa-route text-tw-teal w-5 mr-2"></i> Duration: <span class="font-semibold">${selectedFlight.duration} (${selectedFlight.stops})</span></p>
+                    <p><i class="fas fa-suitcase-rolling text-tw-teal w-5 mr-2"></i> Baggage: <span class="font-semibold">${selectedFlight.baggage}</span></p>
+                    <p><i class="fas fa-utensils text-tw-teal w-5 mr-2"></i> Meals: <span class="font-semibold">${selectedFlight.meals}</span></p>
+                </div>
+            `;
+            // Reset passenger count and calculate total
+            document.getElementById('passenger-count').value = 1;
+            calculateTotal();
+
+            const modal = document.getElementById('booking-modal');
+            const modalContent = document.getElementById('booking-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function calculateTotal() {
+            if (!selectedFlight) return;
+            const passengerCount = parseInt(document.getElementById('passenger-count').value) || 1;
+            const totalPrice = selectedFlight.price * passengerCount;
+            document.getElementById('total-amount').textContent = formatRupees(totalPrice);
+        }
+
+        function generateInvoicePDF() {
+            if (typeof window.jspdf === 'undefined' || !selectedFlight) {
+                alertModal("PDF library is not loaded or flight is not selected. Cannot generate invoice.", "Error");
+                return;
+            }
+
+            // Get data
+            const doc = new window.jspdf.jsPDF();
+            const pricePerPax = selectedFlight.price;
+            const passengerCount = parseInt(document.getElementById('passenger-count').value) || 1;
+
+            // --- MOCK PRICE CALCULATIONS (Matching common flight pricing structure) ---
+            const grossAmount = pricePerPax * passengerCount;
+            const baseFare = Math.round(grossAmount * 0.70);
+            const surcharges = Math.round(grossAmount * 0.30);
+            const discount = Math.round(grossAmount * 0.05); // 5% discount
+
+            const totalBeforeDiscount = baseFare + surcharges;
+            const grandTotal = totalBeforeDiscount - discount;
+            const formattedGrandTotal = formatForPdf(grandTotal); // Use PDF safe format
+
+            let y = 20; // Starting Y position
+            const leftMargin = 20;
+            const totalX = 180; // X position for all amount values
+            const detailX = 140; // X position for the detail/breakdown line
+
+            // 1. Title/Brand: WanderGo (Prominently at the top)
+            doc.setFontSize(36);
+            doc.setTextColor('#03a6a6'); // Teal color
+            doc.setFont("helvetica", "bold");
+            doc.text("WanderGo", leftMargin, y);
+
+            doc.setFontSize(14);
+            doc.setTextColor('#333');
+            doc.setFont("helvetica", "normal");
+            doc.text("E-Ticket / Tax Invoice", leftMargin, y + 8);
+
+            y += 20;
+
+            // 2. Booking Reference & Date (Top Right Box)
+            doc.setFillColor('#f0ffff'); // Light teal background
+            doc.rect(130, y - 10, 60, 25, 'F'); // Draw filled rectangle for reference box
+
+            doc.setFontSize(10);
+            doc.setTextColor('#027a7a'); // Dark Teal
+            doc.setFont("helvetica", "bold");
+            doc.text("Booking ID:", 135, y);
+            doc.setTextColor('#333');
+            doc.setFont("helvetica", "normal");
+            doc.text(`WNG-${Math.floor(Math.random() * 90000 + 10000)}`, 185, y, null, null, "right");
+
+            doc.setTextColor('#027a7a');
+            doc.setFont("helvetica", "bold");
+            doc.text("Invoice Date:", 135, y + 7);
+            doc.setTextColor('#333');
+            doc.setFont("helvetica", "normal");
+            doc.text(`${new Date().toLocaleDateString('en-IN')}`, 185, y + 7, null, null, "right");
+
+            y += 20;
+
+            // 3. Traveller Details
+            doc.setFontSize(14);
+            doc.setTextColor('#027a7a');
+            doc.setFont("helvetica", "bold");
+            doc.text("Traveler & Booking Information", leftMargin, y);
+            y += 5;
+            doc.setDrawColor('#027a7a');
+            doc.line(leftMargin, y, 100, y); // Small underline
+            y += 5;
+
+            doc.setFontSize(10);
+            doc.setTextColor('#555');
+            doc.setFont("helvetica", "normal");
+            doc.text(`Booking Name: J. Doe (${currentSearch.travelerValue} Pax)`, leftMargin, y);
+            doc.text(`Contact: +91 98765 43210`, detailX, y); // Placeholder contact
+            y += 7;
+            doc.text(`Email: booking@wandergo.com`, leftMargin, y);
+            y += 10;
+
+            // 4. Flight Segment (A more structured look)
+            doc.setFontSize(14);
+            doc.setTextColor('#027a7a');
+            doc.setFont("helvetica", "bold");
+            doc.text("Flight Segment Details", leftMargin, y);
+            y += 5;
+            doc.line(leftMargin, y, 100, y);
+            y += 5;
+
+            // Table Header
+            doc.setFontSize(10);
+            doc.setFillColor(230, 245, 245); // Very light blue/teal
+            doc.rect(leftMargin, y, 170, 6, 'F');
+            doc.setTextColor('#027a7a');
+            doc.text("Flight", leftMargin, y + 4.5);
+            doc.text("Route", leftMargin + 40, y + 4.5);
+            doc.text("Date", leftMargin + 85, y + 4.5);
+            doc.text("Time", leftMargin + 115, y + 4.5);
+            doc.text("Stops", leftMargin + 140, y + 4.5);
+            y += 8;
+
+            // Table Content
+            doc.setTextColor('#333');
+            doc.setFont("helvetica", "normal");
+            doc.text(selectedFlight.flightNumber, leftMargin, y);
+            doc.text(`${selectedFlight.depCode} → ${selectedFlight.arrCode}`, leftMargin + 40, y);
+            doc.text(currentSearch.depDate.split(' / 202')[0].trim(), leftMargin + 85, y); // Shortened date
+            doc.text(`${selectedFlight.depTime} (${selectedFlight.duration})`, leftMargin + 115, y);
+            doc.text(selectedFlight.stops, leftMargin + 140, y);
+            y += 10;
+
+            // 5. Amount Structure (Detailed Ledger)
+            doc.setFontSize(14);
+            doc.setTextColor('#027a7a');
+            doc.setFont("helvetica", "bold");
+            doc.text("Amount Structure", leftMargin, y);
+            y += 5;
+            doc.line(leftMargin, y, 100, y);
+            y += 5;
+
+            // Pricing Table Header
+            doc.setFontSize(10);
+            doc.setFillColor(230, 245, 245);
+            doc.rect(leftMargin, y, 170, 6, 'F');
+            doc.setTextColor('#027a7a');
+            doc.text("Fee Description", leftMargin, y + 4.5);
+            doc.text("Amount (Rs.)", totalX, y + 4.5, null, null, "right"); // Changed header to Rs.
+            y += 8;
+
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor('#555');
+
+            // 5.1 Base Fare
+            doc.text(`Base Fare (${passengerCount} Passenger(s))`, leftMargin, y);
+            doc.text(formatForPdf(baseFare), totalX, y, null, null, "right");
+            y += 7;
+
+            // 5.2 Taxes (Split into mock components for detail)
+            doc.text(`Aviation Security Fee (ASF)`, leftMargin, y);
+            doc.text(formatForPdf(Math.round(surcharges * 0.3)), totalX, y, null, null, "right");
+            y += 7;
+
+            doc.text(`Fuel Surcharge & Other Taxes`, leftMargin, y);
+            doc.text(formatForPdf(surcharges - Math.round(surcharges * 0.3)), totalX, y, null, null, "right");
+            y += 7;
+
+            // Line before subtotal
+            doc.setLineWidth(0.2);
+            doc.line(detailX, y, totalX, y);
+            y += 5;
+
+            // Subtotal
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor('#027a7a');
+            doc.text("Subtotal (Total Before Discount)", leftMargin, y);
+            doc.text(formatForPdf(totalBeforeDiscount), totalX, y, null, null, "right");
+            y += 7;
+
+            // 5.3 Discount (Red/Accent color)
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor('#E74C3C'); // Red for discount
+            doc.text("Promotional Discount", leftMargin, y);
+            doc.text(`-${formatForPdf(discount).replace('Rs. ', '')}`, totalX, y, null, null, "right"); // Removed "Rs. " here to align cleanly
+            y += 7;
+
+            // 6. Grand Total (Largest and Boldest)
+            y += 5;
+            doc.setLineWidth(0.8);
+            doc.line(detailX, y, totalX, y); // Thick line above total
+
+            y += 7;
+            doc.setFontSize(20);
+            doc.setTextColor('#F4A261'); // Accent color for final amount
+            doc.setFont("helvetica", "bold");
+            doc.text("GRAND TOTAL", leftMargin, y);
+            doc.text(formattedGrandTotal, totalX, y, null, null, "right");
+
+            doc.setLineWidth(0.8);
+            doc.line(detailX, y + 1, totalX, y + 1); // Thick line below total
+
+            y += 20;
+            doc.setFontSize(10);
+            doc.setTextColor('#555');
+            doc.setFont("helvetica", "italic");
+            doc.text("This is an electronically generated invoice and does not require a physical signature.", leftMargin, y);
+
+            // Save the PDF
+            doc.save('WanderGo_Flight_Booking_Invoice.pdf');
+
+            closeModal('booking-modal', 'booking-content');
+            alertModal("Booking Confirmed! Your official WanderGo invoice has been downloaded.", "Success");
+        }
+
+
+        // --- Initial Setup ---
+
+        // Function to dynamically render all flights
+        function renderFlightListings() {
+            const container = document.getElementById('flight-listings');
+            let html = '';
+
+            flightsData.forEach(flight => {
+                const stopsDisplay = flight.stops === 'Non-stop' ?
+                    `<p class="absolute -mt-3 bg-white px-2 font-medium">${flight.duration}</p>` :
+                    `<p class="absolute -mt-3 bg-white px-2 font-medium text-tw-accent border border-tw-accent rounded-full text-xs">${flight.stops}</p>`;
+
+                const priceClass = flight.price === flightsData[0].price ? 'text-green-600 font-bold' : 'text-gray-800 font-bold';
+                const bestPriceBadge = flight.price === flightsData[0].price ? `<span class="bg-green-100 text-green-700 text-xxs font-extrabold px-2 py-0.5 rounded-full absolute -top-2 left-0 z-10">BEST PRICE</span>` : '';
+
+
+                html += `
+                    <div class="flight-card bg-white p-4 rounded-xl shadow-md flex flex-col md:flex-row justify-between gap-4 relative" onclick="bookFlight(${flight.id})">
+                        ${bestPriceBadge}
+                        <!-- Left Section: Airline & Stop Details -->
+                        <div class="flex items-center space-x-4 w-full md:w-1/4 min-w-[120px]">
+                            <i class="${flight.icon} text-2xl"></i>
+                            <div>
+                                <p class="font-bold text-sm text-gray-800">${flight.airline}</p>
+                                <p class="text-xs text-gray-500">${flight.flightNumber}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Middle Section: Times & Duration -->
+                        <div class="flex-grow flex items-center justify-between border-t md:border-t-0 pt-3 md:pt-0">
+                            <!-- Departure -->
+                            <div class="text-center w-1/4">
+                                <p class="text-2xl font-extrabold text-gray-900">${flight.depTime}</p>
+                                <p class="text-sm text-gray-600">${flight.depCode}</p>
+                            </div>
+
+                            <!-- Duration/Stops Line -->
+                            <div class="relative flex-grow mx-4 max-w-[150px] flex justify-center items-center">
+                                <div class="w-full h-px bg-gray-400 border-dashed border-t border-gray-400"></div>
+                                <i class="fas fa-plane-departure text-gray-500 absolute bg-white p-1 transform rotate-90"></i>
+                                ${stopsDisplay}
+                            </div>
+
+                            <!-- Arrival -->
+                            <div class="text-center w-1/4">
+                                <p class="text-2xl font-extrabold text-gray-900">${flight.arrTime}</p>
+                                <p class="text-sm text-gray-600">${flight.arrCode}</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Section: Price & Booking -->
+                        <div class="flex flex-col items-end justify-center w-full md:w-1/4 border-t md:border-t-0 pt-3 md:pt-0">
+                            <p class="text-2xl font-extrabold text-tw-accent">${formatRupees(flight.price)}</p>
+                            <p class="text-xxs text-gray-500 mb-2">Incl. Taxes & Fees</p>
+                            <button class="book-btn text-white rounded-lg font-semibold text-sm hover:scale-[1.02] transition-transform">
+                                BOOK NOW
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (flightsData.length === 0) {
+                html = `
+                    <div class="bg-yellow-50 border border-yellow-300 text-center p-8 rounded-xl text-yellow-800 mt-6">
+                        <p class="font-semibold text-lg">No Flights Found</p>
+                        <p class="text-sm">We couldn't find any flights matching your criteria. Try adjusting your dates or destinations.</p>
+                    </div>
+                 `;
+            }
+            container.innerHTML = html;
+        }
+
+
+        // Mock functions for full search view (not fully functional)
+        function selectTripType(type) {
+            document.querySelectorAll('.trip-type-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`${type}-tab`).classList.add('active');
+
+            // Mock Return Date functionality
+            const returnInput = document.getElementById('full-return-input');
+            if (type === 'round-trip') {
+                returnInput.style.opacity = '1';
+                returnInput.style.cursor = 'pointer';
+                document.querySelector('#full-return-date').textContent = 'dd / mm / yyyy';
+                document.querySelector('.input-module-detail', returnInput).textContent = 'Click to select date';
+            } else {
+                returnInput.style.opacity = '0.5';
+                returnInput.style.cursor = 'default';
+                document.querySelector('#full-return-date').textContent = 'dd / mm / yyyy';
+                document.querySelector('.input-module-detail', returnInput).textContent = 'One Way Trip';
+            }
+        }
+
+        function activateInput(element, view) {
+            document.querySelectorAll('.input-module').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            // Mock data entry logic (would use a sophisticated picker in a real app)
+            if (element.id.includes('departure') || element.id.includes('return')) {
+                alertModal("Date picker functionality would appear here.", "Date Selection");
+            } else {
+                alertModal("City/Travelers selection dropdown would appear here.", "Selection");
+            }
+        }
+
+        function swapLocations(event, view) {
+            event.stopPropagation();
+            alertModal("Locations have been swapped (DEL <-> BOM).", "Swap");
+        }
+
+        function applyFilters() {
+            alertModal("Filters applied! Results would be re-rendered here based on price, stops, and airline.", "Filtering");
+        }
+
+
+        window.onload = function() {
+            // Initial load sequence
+            updateQuerySummary();
+            renderFlightListings();
+            hideFullSearchPage(); // Ensure the results view is displayed first
+        };
+    </script>
+</body>
+
+</html>

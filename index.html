@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderGo - Adventure Awaits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        // Custom Tailwind Configuration (Primary color: #03a6a6 - Teal)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wg-primary': '#03a6a6',
+                        'wg-dark': '#027a7a',
+                        'wg-secondary': '#F4A261', // Orange accent
+                        'wg-background': '#f1f8f8', // Very light teal background
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base styles */
+        
+        body {
+            background-color: #F8F8F8;
+            color: #333333;
+        }
+        /* Hero Banner with Placeholder Image */
+        
+        #hero-banner {
+            background-image: url('https://images.unsplash.com/photo-1542856391-010fb87dcfed?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MnwyNDcwNDExfHxlbnwwfHx8fHw%3D');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        /* Hero Overlay for better text contrast */
+        
+        #hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.2);
+            /* Subtle dark overlay */
+        }
+        /* Navigation (fixed background to keep white text visible) */
+        
+        .nav-link {
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #03a6a6;
+        }
+        /* Main Search Box Styling */
+        
+        .search-container {
+            background-color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        /* Input Field Styling */
+        
+        .input-field-wrapper {
+            border-right: 1px solid #E5E7EB;
+        }
+        
+        .input-field-wrapper:last-child {
+            border-right: none;
+        }
+        /* Search Button Style */
+        
+        .search-btn {
+            background-color: #F4A261;
+            background-image: linear-gradient(180deg, #F4A261 0%, #e09459 100%);
+            box-shadow: 0 4px 15px rgba(244, 162, 97, 0.6);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 162, 97, 0.8);
+        }
+        /* Card Styles */
+        
+        .destination-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .destination-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(3, 166, 166, 0.2);
+        }
+        /* Teaser Background */
+        
+        .teal-bg-section {
+            background-color: #03a6a6;
+            background-image: linear-gradient(90deg, #03a6a6 0%, #027a7a 100%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Main Application Container -->
+    <div id="app" class="min-h-screen">
+
+        <!-- Header / Top Navigation Bar (Fixed for the Hero Section) -->
+        <header class="absolute top-0 left-0 right-0 z-20 text-white py-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <!-- Logo -->
+                <a href="#" class="text-3xl font-extrabold tracking-tight">
+                    Wander<span class="font-light text-wg-secondary">Go</span>
+                </a>
+
+                <!-- Secondary Nav Items -->
+                <nav class="flex space-x-6 text-base items-center">
+                    <a href="flight.html" class="nav-link hover:text-wg-primary transition hidden sm:inline">✈️Flights</a>
+                    <a href="hotel.html" class="nav-link hover:text-wg-primary transition hidden sm:inline">🏨Hotels</a>
+                    <a href="contact.html" class="nav-link hover:text-wg-primary transition hidden sm:inline">☎️Contact/Support</a>
+                    <a href="login.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition">
+                        <i class="fas fa-user-circle mr-2"></i> Login
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content Area: Hero Banner, Search Forms, and USPs -->
+        <main class="relative pb-20">
+            <!-- Hero Banner Section -->
+            <section id="hero-banner" class="h-[450px] md:h-[500px] flex items-center justify-center">
+                <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+
+                    <!-- Main Title Area -->
+                    <div class="text-center mb-10 pt-16">
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 shadow-text">
+                            Where shall we venture next?
+                        </h1>
+                        <p class="text-lg text-white font-medium opacity-90">Your Next Great Adventure Starts Here.</p>
+                    </div>
+
+                    <!-- Search Form Container (Central Element) -->
+                    <div id="search-container" class="search-container rounded-xl overflow-hidden shadow-2xl mx-auto max-w-5xl -mb-16 md:-mb-24">
+                        <!-- Flight/Hotel form will be inserted here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Sections start below the banner -->
+            <div class="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+
+                <!-- 4 USPs / Service Blocks -->
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mt-12 mb-16">
+                    <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-wg-primary destination-card">
+                        <i class="fas fa-plane-departure text-3xl text-wg-primary mb-2"></i>
+                        <p class="font-bold text-gray-800 text-sm">Best Priced Flights</p>
+                        <p class="text-xs text-gray-500">24/7 Minimum Price Guarantee.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-wg-primary destination-card">
+                        <i class="fas fa-headset text-3xl text-wg-primary mb-2"></i>
+                        <p class="font-bold text-gray-800 text-sm">24/7 Customer Support</p>
+                        <p class="text-xs text-gray-500">Quick support in your language.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-wg-primary destination-card">
+                        <i class="fas fa-shield-alt text-3xl text-wg-primary mb-2"></i>
+                        <p class="font-bold text-gray-800 text-sm">100% Secure Booking</p>
+                        <p class="text-xs text-gray-500">SSL protected transactions.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-wg-primary destination-card">
+                        <i class="fas fa-money-check-alt text-3xl text-wg-primary mb-2"></i>
+                        <p class="font-bold text-gray-800 text-sm">Multiple Payment Options</p>
+                        <p class="text-xs text-gray-500">Pay by card or PayPal.</p>
+                    </div>
+                </section>
+
+                <!-- Popular Destinations Section -->
+                <section class="mt-16">
+                    <h2 class="text-3xl font-extrabold text-gray-800 mb-8 text-center">Most Popular Destinations</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        <!-- Destination Card 1 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://cdn.luxurytravelmag.com.au/wp-content/uploads/2024/07/24122332/shutterstock_114479500-scaled.jpg" alt="Playa del Carmen" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Paris, France</h3>
+                                <p class="text-sm text-gray-500 mt-1">Celebrated for attracting global attention, it's a must-visit for art, culture, and romance. | $120/night</p>
+                            </div>
+                        </div>
+
+                        <!-- Destination Card 2 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-F9INwTxO1CbKX7xo0CUA1vM3bvBP82oCig&s" alt="Cabo San Lucas" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Tokyo, Japan</h3>
+                                <p class="text-sm text-gray-500 mt-1">A blend of modern city life and tradition, it's often ranked among the world's best cities. | $150/night</p>
+                            </div>
+                        </div>
+
+                        <!-- Destination Card 3 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://m.media-amazon.com/images/I/71voa4XxwhL.jpg" alt="Cancun" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">London, England</h3>
+                                <p class="text-sm text-gray-500 mt-1">A storied metropolis that frequently ranks as a top global city for its history and vibrancy. | $100/night</p>
+                            </div>
+                        </div>
+
+                        <!-- Destination Card 4 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://assets.voxcity.com/uploads/blog_images/How-Many-Days-Should-I-Spend-in-Rome-for-the-Perfect-Itinerary-image-main_original.jpg" alt="Puerto Vallarta" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Rome, Italy</h3>
+                                <p class="text-sm text-gray-500 mt-1">Known as the "Eternal City," it offers a rich tapestry of ancient history and Italian culture. | $135/night</p>
+                            </div>
+                        </div>
+
+                        <!-- Destination Card 5 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd4D18Z80i-F3DO8dRO2o43S7hNc81EFm4yw&s" alt="Cozumel" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Istanbul, Turkey</h3>
+                                <p class="text-sm text-gray-500 mt-1">A city where East meets West, offering a unique cultural experience with stunning architecture. | $95/night</p>
+                            </div>
+                        </div>
+
+                        <!-- Destination Card 6 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXMgJ1aOiC6Dol9Z8Oqt2F8A7_QqLn8PXGTw&s" alt="Mexico City" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Machu Picchu, Peru</h3>
+                                <p class="text-sm text-gray-500 mt-1">The ancient Inca citadel nestled in the Andes mountains is a breathtaking site. | $80/night</p>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="text-center mt-8">
+                        <a href="flight.html">
+                            <button class="text-wg-primary font-semibold py-3 px-6 rounded-full border-2 border-wg-primary hover:bg-wg-primary hover:text-white transition duration-200">
+                            Explore More Destinations
+                        </button>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Testimonial Section -->
+                <section class="teal-bg-section text-center text-white py-16 rounded-xl shadow-xl mt-20">
+                    <div class="max-w-4xl mx-auto px-4">
+                        <i class="fas fa-quote-left text-5xl mb-6 text-wg-secondary opacity-80"></i>
+                        <p class="text-2xl font-light italic leading-relaxed">
+                            "WanderGo provides me with an unforgettable vacation experience; everything goes according to plan with a happy ending."
+                        </p>
+                        <p class="mt-6 text-lg font-semibold">- Jane Doe, Traveler</p>
+                        <div class="flex justify-center mt-2 text-wg-secondary">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Featured Activities Section -->
+                <div class="mt-20">
+                    <h2 class="text-3xl font-extrabold text-gray-800 mb-8 text-center">Featured Activities</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Activity Card 1 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRz7bKTHc8efoAL5xR9yOnFBvKtwH1r4IhiHg&s" alt="Activity 1" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded absolute top-2 right-2">35% OFF</span>
+                                <h3 class="text-xl font-bold text-gray-800">Unlimited Banana Boat Ride</h3>
+                                <p class="text-sm text-gray-500 mt-1">Water Activity</p>
+                                <div class="flex items-center mt-3">
+                                    <span class="text-wg-secondary text-sm mr-2">4.8</span>
+                                    <div class="text-yellow-400 text-xs">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">(120 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Card 2 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://cdn-imgix.headout.com/media/images/3b4566e5cdd951ba1feebdd8cdc122f5-13243-bali-nusa-lembongan---manta-bay-snorkeling-day-tour-10.jpg?auto=compress&w=768&h=480&fit=min" alt="Activity 2" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Reef Snorkel Tour</h3>
+                                <p class="text-sm text-gray-500 mt-1">Marine Exploration</p>
+                                <div class="flex items-center mt-3">
+                                    <span class="text-wg-secondary text-sm mr-2">4.9</span>
+                                    <div class="text-yellow-400 text-xs">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">(98 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Card 3 -->
+                        <div class="destination-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
+                            <img src="https://alltrips.mx/wp-content/uploads/2015/11/Chichenitza-ikil-valladolid-ekbalam-01.jpg" alt="Activity 3" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold text-gray-800">Chichen Itza Excursion</h3>
+                                <p class="text-sm text-gray-500 mt-1">Full-day Cultural Tour</p>
+                                <div class="flex items-center mt-3">
+                                    <span class="text-wg-secondary text-sm mr-2">4.7</span>
+                                    <div class="text-yellow-400 text-xs">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-400 ml-2">(250 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-8">
+                        <a href="flight.html">
+                            <button class="text-wg-primary font-semibold py-3 px-6 rounded-full border-2 border-wg-primary hover:bg-wg-primary hover:text-white transition duration-200">
+                            Explore More Destinations
+                        </button>
+                        </a>
+                    </div>
+
+
+
+                </div>
+            </div>
+    </div>
+    </section>
+    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+
+            <!-- Column 1: Logo & Social -->
+            <div>
+                <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                        Wander<span class="font-light text-wg-secondary">Go</span>
+                    </a>
+                <p class="text-sm mt-4">&copy; 2025 WanderGo. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+
+            <!-- Column 2: Quick Links -->
+            <div>
+                <h4 class="font-bold text-white mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">About Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Careers</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Terms & Conditions</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Support -->
+            <div>
+                <h4 class="font-bold text-white mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">FAQ</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Booking Help</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Contact -->
+            <div>
+                <h4 class="font-bold text-white mb-4">Contact Us</h4>
+                <p class="text-sm">Email: info@wandergo.com</p>
+                <p class="text-xl font-bold text-white mt-2">1-800-999-0000</p>
+                <div class="mt-4">
+                    <label class="block text-sm font-semibold text-white mb-2">Newsletter</label>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="p-2 text-gray-800 rounded-l-lg w-full focus:outline-none">
+                        <button class="bg-wg-primary text-white p-2 rounded-r-lg hover:bg-wg-dark transition">Go</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-700 mt-8 pt-6 text-center">
+            <p class="text-xs text-gray-500">We Accept: Visa, MasterCard, PayPal</p>
+        </div>
+    </footer>
+
+    </div>
+
+    <!-- Custom Modal for Alerts (replacing alert()) -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[9999]">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 border-t-4 border-wg-primary">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-info-circle text-wg-primary mr-3"></i> Notification
+            </h3>
+            <p id="modal-message" class="text-gray-700 mb-6 border-b pb-4">Content message.</p>
+            <button id="close-modal-btn" class="w-full bg-wg-primary text-white font-semibold py-3 rounded-lg hover:bg-wg-dark transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Core JS Functions and Data ---
+        const searchContainer = document.getElementById('search-container');
+
+        // State for Flight Search Passengers & Class
+        let flightSearchState = {
+            fromCity: 'New York', // Default English city
+            toCity: 'Miami', // Default English city
+            departureDate: '',
+            returnDate: '',
+            adults: 1,
+            children: 0,
+            class: 'Economy'
+        };
+
+        // Custom Modal Logic
+        const customModal = document.getElementById('custom-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        function alertModal(message) {
+            modalMessage.textContent = message;
+            customModal.classList.remove('hidden');
+            customModal.classList.add('flex');
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            customModal.classList.add('hidden');
+            customModal.classList.remove('flex');
+        });
+
+        // --- Date Validation Functionality ---
+
+        /**
+         * Sets min attribute on date inputs and adds change listeners to enforce date order.
+         */
+        function setupDateValidation() {
+            const today = new Date().toISOString().split('T')[0];
+
+            // FLIGHTS
+            const departureDateInput = document.getElementById('departure-date');
+            const returnDateInput = document.getElementById('return-date');
+
+            if (departureDateInput) {
+                departureDateInput.min = today;
+
+                // Load saved state value
+                if (flightSearchState.departureDate) departureDateInput.value = flightSearchState.departureDate;
+
+                if (returnDateInput) {
+                    // Load saved state value
+                    if (flightSearchState.returnDate) returnDateInput.value = flightSearchState.returnDate;
+
+                    // Enforce Return Date > Departure Date
+                    const departListener = (e) => {
+                        const departureValue = e.target.value;
+                        flightSearchState.departureDate = departureValue;
+                        if (departureValue) {
+                            const minReturnDate = new Date(departureValue);
+                            minReturnDate.setDate(minReturnDate.getDate() + 1);
+                            returnDateInput.min = minReturnDate.toISOString().split('T')[0];
+
+                            if (returnDateInput.value && returnDateInput.value < returnDateInput.min) {
+                                returnDateInput.value = '';
+                                flightSearchState.returnDate = '';
+                            }
+                        }
+                    };
+                    departureDateInput.removeEventListener('change', window.departListener); // Clean up old listener
+                    departureDateInput.addEventListener('change', departListener);
+                    window.departListener = departListener; // Save reference for cleanup
+
+                    // Initial check on load
+                    if (departureDateInput.value) {
+                        const minReturnDate = new Date(departureDateInput.value);
+                        minReturnDate.setDate(minReturnDate.getDate() + 1);
+                        returnDateInput.min = minReturnDate.toISOString().split('T')[0];
+                    }
+                }
+            }
+
+            // HOTELS
+            const checkinDateInput = document.getElementById('check-in-date');
+            const checkoutDateInput = document.getElementById('check-out-date');
+
+            if (checkinDateInput) {
+                checkinDateInput.min = today;
+            }
+
+            if (checkinDateInput && checkoutDateInput) {
+                checkinDateInput.addEventListener('change', (e) => {
+                    const checkinValue = e.target.value;
+                    if (checkinValue) {
+                        const minCheckoutDate = new Date(checkinValue);
+                        minCheckoutDate.setDate(minCheckoutDate.getDate() + 1);
+                        checkoutDateInput.min = minCheckoutDate.toISOString().split('T')[0];
+
+                        if (checkoutDateInput.value && checkoutDateInput.value < checkoutDateInput.min) {
+                            checkoutDateInput.value = '';
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- Traveller Panel Functionality ---
+
+        /**
+         * Updates the visible counts and class in the Traveller selection box.
+         */
+        function updateTravellerDisplay() {
+            const detail = document.getElementById('traveller-detail');
+            const adultCount = document.getElementById('adult-count');
+            const childCount = document.getElementById('child-count');
+
+            if (detail) {
+                detail.textContent = `${flightSearchState.adults} Adult${flightSearchState.adults > 1 ? 's' : ''}${flightSearchState.children > 0 ? , ${flightSearchState.children} Child${flightSearchState.children > 1 ? 'ren' : ''} : ''}, ${flightSearchState.class}`;
+            }
+            if (adultCount) {
+                adultCount.textContent = flightSearchState.adults;
+            }
+            if (childCount) {
+                childCount.textContent = flightSearchState.children;
+            }
+
+            // Re-render class buttons to show active state
+            document.querySelectorAll('.class-btn').forEach(btn => {
+                if (btn.dataset.class === flightSearchState.class) {
+                    btn.classList.add('bg-wg-primary', 'text-white', 'border-wg-dark');
+                    btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-50');
+                } else {
+                    btn.classList.remove('bg-wg-primary', 'text-white', 'border-wg-dark');
+                    btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-50');
+                }
+            });
+
+            // Update +/- buttons disabled state
+            document.querySelector('.adult-minus-btn').disabled = flightSearchState.adults === 1;
+            document.querySelector('.child-minus-btn').disabled = flightSearchState.children === 0;
+            const totalPassengers = flightSearchState.adults + flightSearchState.children;
+            document.querySelector('.adult-plus-btn').disabled = totalPassengers >= 9;
+            document.querySelector('.child-plus-btn').disabled = totalPassengers >= 9;
+        }
+
+        /**
+         * Increments or decrements passenger count.
+         */
+        function updatePassenger(type, change) {
+            let newAdults = flightSearchState.adults;
+            let newChildren = flightSearchState.children;
+
+            if (type === 'adults') {
+                newAdults += change;
+            } else if (type === 'children') {
+                newChildren += change;
+            }
+
+            // Validation logic
+            const total = newAdults + newChildren;
+
+            if (newAdults < 1 || newAdults > 9) {
+                if (type === 'adults' && newAdults < 1) alertModal("Minimum 1 adult required.");
+                if (total > 9) alertModal("Maximum 9 passengers allowed.");
+                return;
+            }
+
+            if (newChildren < 0 || newChildren > 9) {
+                if (type === 'children' && newChildren < 0) return; // Should be prevented by disabled button
+                if (total > 9) alertModal("Maximum 9 passengers allowed.");
+                return;
+            }
+
+            if (total > 9) {
+                alertModal("Maximum total of 9 passengers allowed per booking.");
+                return;
+            }
+
+            // Update state only after validation passes
+            flightSearchState.adults = newAdults;
+            flightSearchState.children = newChildren;
+
+            updateTravellerDisplay();
+        }
+
+        /**
+         * Sets the selected travel class.
+         */
+        function updateTravelClass(newClass) {
+            flightSearchState.class = newClass;
+            updateTravellerDisplay();
+            document.getElementById('traveller-panel') ? .classList.add('hidden');
+        }
+
+        /**
+         * Toggles the visibility of the traveller selection panel.
+         */
+        function toggleTravellerPanel(event) {
+            event.stopPropagation();
+            const panel = document.getElementById('traveller-panel');
+            if (panel) {
+                panel.classList.toggle('hidden');
+            }
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('traveller-panel');
+            const box = document.getElementById('traveller-box');
+            if (panel && box && !box.contains(event.target) && !panel.contains(event.target)) {
+                panel.classList.add('hidden');
+            }
+        });
+
+        // --- Form Templates ---
+
+        const getTravellerPanelHTML = () => `
+            <!-- Traveller Selection Panel -->
+            <div id="traveller-panel" class="absolute right-0 md:w-[350px] w-full mt-2 bg-white rounded-xl shadow-2xl p-4 border border-wg-primary hidden z-20">
+                <h4 class="font-bold text-lg mb-3 border-b pb-2 text-gray-800">Select Travelers and Class</h4>
+
+                <!-- Adults Counter -->
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="font-semibold text-gray-700">Adults (12+)</p>
+                        <p class="text-xs text-gray-500">Minimum 1 adult</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button type="button" onclick="window.updatePassenger('adults', -1)" class="adult-minus-btn w-8 h-8 rounded-full bg-gray-100 text-gray-800 border hover:bg-gray-200 transition disabled:opacity-50" disabled>-</button>
+                        <span id="adult-count" class="font-bold w-4 text-center">1</span>
+                        <button type="button" onclick="window.updatePassenger('adults', 1)" class="adult-plus-btn w-8 h-8 rounded-full bg-wg-primary text-white hover:bg-wg-dark transition">+</button>
+                    </div>
+                </div>
+
+                <!-- Children Counter -->
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <div>
+                        <p class="font-semibold text-gray-700">Children (0-11)</p>
+                        <p class="text-xs text-gray-500">Age at time of travel</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button type="button" onclick="window.updatePassenger('children', -1)" class="child-minus-btn w-8 h-8 rounded-full bg-gray-100 text-gray-800 border hover:bg-gray-200 transition disabled:opacity-50" disabled>-</button>
+                        <span id="child-count" class="font-bold w-4 text-center">0</span>
+                        <button type="button" onclick="window.updatePassenger('children', 1)" class="child-plus-btn w-8 h-8 rounded-full bg-wg-primary text-white hover:bg-wg-dark transition">+</button>
+                    </div>
+                </div>
+
+                <!-- Travel Class Selection -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Class</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-class="Economy" onclick="window.updateTravelClass('Economy')" class="class-btn flex-grow text-sm py-2 px-3 rounded-full border">Economy</button>
+                        <button type="button" data-class="Premium" onclick="window.updateTravelClass('Premium')" class="class-btn flex-grow text-sm py-2 px-3 rounded-full border">Premium</button>
+                        <button type="button" data-class="Business" onclick="window.updateTravelClass('Business')" class="class-btn flex-grow text-sm py-2 px-3 rounded-full border">Business</button>
+                        <button type="button" data-class="First" onclick="window.updateTravelClass('First')" class="class-btn flex-grow text-sm py-2 px-3 rounded-full border">First</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const getFlightForm = (isRoundTripChecked) => {
+            const returnDateClass = isRoundTripChecked ? 'block' : 'hidden';
+
+            return `
+            <form id="flight-search-form" onsubmit="handleFlightSearch(event)" class="space-y-4">
+                <!-- Trip Type Selector -->
+                <div class="flex justify-center space-x-8 pt-3 pb-2 border-b border-gray-100">
+                    <label class="flex items-center space-x-2 text-gray-800 cursor-pointer text-sm">
+                        <input type="radio" name="trip-type" value="one-way" ${!isRoundTripChecked ? 'checked' : ''} onchange="loadContent('flights', this.value === 'round-trip')" class="form-radio text-wg-primary w-4 h-4 checked:bg-wg-primary focus:ring-wg-primary">
+                        <span class="font-medium">One Way</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-gray-800 cursor-pointer text-sm">
+                        <input type="radio" name="trip-type" value="round-trip" ${isRoundTripChecked ? 'checked' : ''} onchange="loadContent('flights', this.value === 'round-trip')" class="form-radio text-wg-primary w-4 h-4 checked:bg-wg-primary focus:ring-wg-primary">
+                        <span class="font-medium">Round Trip</span>
+                    </label>
+                </div>
+
+                <!-- Input Fields Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                    
+                    <!-- From Location -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">ORIGIN</label>
+                        <input type="text" id="from-city" value="${flightSearchState.fromCity}" placeholder="Origin City" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none" required>
+                        <p class="text-xs text-gray-500">Airport or City</p>
+                    </div>
+
+                    <!-- To Location -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">DESTINATION</label>
+                        <input type="text" id="to-city" value="${flightSearchState.toCity}" placeholder="Destination City" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none" required>
+                        <p class="text-xs text-gray-500">Airport or City</p>
+                    </div>
+
+                    <!-- Departure Date -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">DEPARTURE</label>
+                        <input type="date" id="departure-date" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none p-0 appearance-none" required>
+                        <p class="text-xs text-gray-500">Choose the date</p>
+                    </div>
+
+                    <!-- Return Date -->
+                    <div id="return-date-wrapper" class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition ${returnDateClass}">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">RETURN</label>
+                        <input type="date" id="return-date" ${isRoundTripChecked ? 'required' : ''} class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none p-0 appearance-none">
+                        <p class="text-xs text-gray-500">Choose the date</p>
+                    </div>
+                    
+                    <!-- Traveller/Class (Interactive Panel Trigger) -->
+                    <div class="relative p-4 cursor-pointer hover:bg-wg-background transition" id="traveller-box" onclick="window.toggleTravellerPanel(event)">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">TRAVELERS & CLASS</label>
+                        <div class="flex justify-between items-baseline">
+                            <span id="traveller-detail" class="text-lg font-bold text-gray-800"></span>
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                        <p class="text-xs text-gray-500">Total passengers and class</p>
+                        ${getTravellerPanelHTML()}
+                    </div>
+                    
+                    <!-- Search Button Column (Fixed width for alignment with image design) -->
+                    <div class="p-0 flex items-center justify-center md:absolute md:right-0 md:top-0 md:h-full md:w-16">
+                        <button type="submit" class="search-btn text-white text-lg font-extrabold w-full md:w-16 h-16 md:h-full flex items-center justify-center">
+                            <i class="fas fa-search text-xl"></i>
+                            <span class="md:hidden ml-2">Search</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            `;
+        };
+
+        const getHotelForm = () => `
+            <form id="hotel-search-form" onsubmit="handleHotelSearch(event)" class="space-y-4">
+                <!-- Tabs Placeholder -->
+                <div class="flex justify-center space-x-8 pt-3 pb-2 border-b border-gray-100">
+                    <span class="text-wg-primary font-bold text-sm">Hotels</span>
+                    <span class="text-gray-400 text-sm opacity-70 cursor-not-allowed">Packages</span>
+                </div>
+                
+                <!-- Input Fields Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                    
+                    <!-- City/Locality -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition md:col-span-1">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">DESTINATION</label>
+                        <input type="text" id="hotel-city" placeholder="City / Area / Hotel" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none" required>
+                        <p class="text-xs text-gray-500">Where do you want to go?</p>
+                    </div>
+
+                    <!-- Check In Date -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">CHECK-IN</label>
+                        <input type="date" id="check-in-date" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none p-0 appearance-none" required>
+                        <p class="text-xs text-gray-500">Arrival date</p>
+                    </div>
+
+                    <!-- Check Out Date -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">CHECK-OUT</label>
+                        <input type="date" id="check-out-date" class="w-full bg-transparent text-lg font-bold text-gray-800 focus:outline-none p-0 appearance-none" required>
+                        <p class="text-xs text-gray-500">Departure date</p>
+                    </div>
+
+                    <!-- Rooms & Guests (Static for now) -->
+                    <div class="input-field-wrapper p-4 cursor-pointer hover:bg-wg-background transition">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">ROOMS & GUESTS</label>
+                        <div class="flex justify-between items-baseline">
+                            <span class="text-lg font-bold text-gray-800">1 Rm, 2 Gsts.</span>
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                        <p class="text-xs text-gray-500">Max 2 adults per room.</p>
+                    </div>
+                    
+                    <!-- Search Button Column -->
+                    <div class="p-0 flex items-center justify-center md:absolute md:right-0 md:top-0 md:h-full md:w-16">
+                        <button type="submit" class="search-btn text-white text-lg font-extrabold w-full md:w-16 h-16 md:h-full flex items-center justify-center">
+                            <i class="fas fa-search text-xl"></i>
+                            <span class="md:hidden ml-2">Search</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        `;
+
+
+        // --- Event Handlers and Rendering Logic ---
+
+        // Mock Search Submission Handlers
+        function handleFlightSearch(event) {
+            event.preventDefault();
+            const from = document.getElementById('from-city').value;
+            const to = document.getElementById('to-city').value;
+            const depart = document.getElementById('departure-date').value;
+            const tripType = document.querySelector('input[name="trip-type"]:checked').value;
+            const returnDateInput = document.getElementById('return-date');
+
+            flightSearchState.departureDate = depart;
+
+            if (tripType === 'round-trip') {
+                if (!returnDateInput.value || returnDateInput.value < depart) {
+                    alertModal("Please select a valid return date after the departure date.");
+                    return;
+                }
+                flightSearchState.returnDate = returnDateInput.value;
+            } else {
+                flightSearchState.returnDate = '';
+            }
+
+            const returnDateDisplay = tripType === 'round-trip' ? ,
+                Return : $ {
+                    flightSearchState.returnDate
+                }: '';
+
+            const adults = flightSearchState.adults;
+            const children = flightSearchState.children;
+            const travelClass = flightSearchState.class;
+
+            alertModal(Simulating Flight Search: \nOrigin: $ {
+                    from
+                }\
+                nDestination: $ {
+                    to
+                }\
+                nDeparture: $ {
+                    depart
+                }
+                $ {
+                    returnDateDisplay
+                }\
+                nTrip Type: $ {
+                    tripType === 'one-way' ? 'One Way' : 'Round Trip'
+                }\
+                nPassengers: $ {
+                    adults
+                }
+                Adults, $ {
+                    children
+                }
+                Children\ nClass: $ {
+                    travelClass
+                }\
+                n\ n(Simulated search.No connection to real data.));
+        }
+
+        function handleHotelSearch(event) {
+            event.preventDefault();
+            const city = document.getElementById('hotel-city').value;
+            const checkin = document.getElementById('check-in-date').value;
+            const checkout = document.getElementById('check-out-date').value;
+
+            const checkinDateInput = document.getElementById('check-in-date');
+            const checkoutDateInput = document.getElementById('check-out-date');
+
+            if (checkoutDateInput.value < checkinDateInput.value) {
+                alertModal("Please select a valid check-out date after the check-in date.");
+                return;
+            }
+
+            alertModal(Simulating Hotel Search: \nCity: $ {
+                    city
+                }\
+                nCheck - In: $ {
+                    checkin
+                }\
+                nCheck - Out: $ {
+                    checkout
+                }\
+                n\ n(Simulated search.No connection to real data.));
+        }
+
+        // --- Main Tab Switching Logic ---
+        // isRoundTrip is only relevant for flights mode
+        const loadContent = (mode, isRoundTrip = false) => {
+
+            // Check current radio state if available, otherwise use default (false)
+            if (mode === 'flights') {
+                // Check if the current form has a round-trip radio button checked
+                const radioChecked = document.querySelector('input[name="trip-type"][value="round-trip"]:checked');
+                const isRoundTripChecked = radioChecked ? true : isRoundTrip;
+
+                searchContainer.innerHTML = getFlightForm(isRoundTripChecked);
+
+                // Show/hide return date wrapper based on radio state
+                document.getElementById('return-date-wrapper').classList.toggle('hidden', !isRoundTripChecked);
+                document.getElementById('return-date').required = isRoundTripChecked;
+
+                // Set up the listeners and update display
+                setupDateValidation();
+                updateTravellerDisplay();
+
+            } else if (mode === 'hotels') {
+                searchContainer.innerHTML = getHotelForm();
+                setupDateValidation();
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial form load (Flights, One-Way default)
+            loadContent('flights', false);
+
+            // Expose functions globally
+            window.handleFlightSearch = handleFlightSearch;
+            window.handleHotelSearch = handleHotelSearch;
+            window.alertModal = alertModal;
+            window.updatePassenger = updatePassenger;
+            window.updateTravelClass = updateTravelClass;
+            window.toggleTravellerPanel = toggleTravellerPanel;
+            window.setupDateValidation = setupDateValidation;
+            window.loadContent = loadContent; // Expose loadContent for radio buttons
+        });
+    </script>
+</body>
+
+</html>

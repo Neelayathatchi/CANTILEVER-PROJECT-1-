@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderGo - AI Chat Support & Contact</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <script>
+        // Custom Tailwind Configuration (matching hotel/flight pages)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wg-primary': '#03a6a6', // Teal
+                        'wg-dark': '#027a7a', // Dark Teal
+                        'wg-accent': '#F4A261', // Orange/Coral
+                        'wg-light-teal': '#f0ffff', // Very light teal for backgrounds
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+        }
+        
+        .teal-bg-section {
+            background-color: #03a6a6;
+            background-image: linear-gradient(90deg, #03a6a6 0%, #027a7a 100%);
+        }
+        
+        .input-focus:focus {
+            border-color: #03a6a6;
+            box-shadow: 0 0 0 3px rgba(3, 166, 166, 0.3);
+        }
+        /* --- Chatbot Specific Styles --- */
+        
+        .chat-container {
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        #chat-window {
+            height: 500px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding: 1rem;
+            /* Subtle Pattern Background */
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0ffff' fill-opacity='0.6'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.41L1.41 0h2.83L0 3.84V1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41L38.59 0h-2.83l3.84 3.84V1.41zM20 1.41L21.41 0h-2.82l-1.42 1.41h2.83zm0 37.18L18.59 40h2.82l1.42-1.41h-2.83zM35.17 0l3.84 3.84V0h-3.84zm-30.34 0V3.84L0 0h4.83zM40 4.83V0h-3.84l3.84 3.84zm0 30.34l-3.84-3.84V40h3.84z' fill-rule='evenodd'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .bot-message {
+            background-color: #ffffff;
+            border: 1px solid #03a6a630;
+            color: #1f2937;
+            border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .user-message {
+            background-color: #03a6a6;
+            color: white;
+            border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+            box-shadow: 0 4px 8px rgba(3, 166, 166, 0.3);
+        }
+        /* Typing indicator animation */
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin: 0 1px;
+            background-color: #F4A261;
+            border-radius: 50%;
+            opacity: 0;
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-20 shadow-lg" style="background-color: #03a6a6;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                        Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                    </a>
+                </div>
+
+                <nav class="hidden md:flex space-x-8">
+                    <a href="flight.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">✈️Flights</a>
+                    <a href="hotel.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Hotels</a>
+                    <a href="contact.html" class="text-white font-bold transition duration-150 ease-in-out border-b-2 border-white">
+                        <i class="fas fa-headset mr-2"></i>Contact/Support
+                    </a>
+                    <a href="login.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition">
+                        <i class="fas fa-user-circle mr-2"></i> Login
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <div class="teal-bg-section pt-16 pb-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-5xl font-extrabold text-white mb-3">Instant Answers. Human Care.</h1>
+                <p class="text-xl text-gray-200">Start a chat with our AI or reach out to a customer specialist.</p>
+            </div>
+        </div>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+            <div class="bg-white chat-container flex flex-col shadow-2xl border-4 border-wg-primary/50">
+                <div class="p-5 bg-wg-dark text-white text-center rounded-t-lg">
+                    <i class="fas fa-robot text-2xl text-wg-accent"></i>
+                    <h2 class="text-xl font-bold mt-1">WanderBot AI Support</h2>
+                    <p class="text-sm text-gray-200">Ready to chat 24/7</p>
+                </div>
+
+                <div id="chat-window" class="flex-grow space-y-4">
+                </div>
+
+                <form id="chat-form" class="flex items-center space-x-3 p-4 bg-gray-100 border-t border-gray-200" onsubmit="handleChatSubmit(event)">
+                    <input type="text" id="chat-input" placeholder="Type your complex question (e.g., 'What is the refund time for a cancelled flight?')" class="w-full p-3 border-2 border-wg-dark/20 rounded-full input-focus focus:border-wg-primary bg-white transition duration-200"
+                        required>
+                    <button type="submit" class="bg-wg-accent text-white p-3 rounded-full h-12 w-12 flex items-center justify-center hover:bg-wg-primary transition shadow-lg transform hover:scale-105" aria-label="Send Message">
+                        <i class="fas fa-paper-plane text-lg"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-white p-8 rounded-xl shadow-2xl">
+                    <h2 class="text-3xl font-extrabold text-wg-primary mb-5 border-b pb-2 flex items-center">
+                        <i class="fas fa-envelope mr-3 text-wg-accent"></i> Contact a Specialist
+                    </h2>
+
+                    <form id="contact-form" onsubmit="submitContactForm(event)" class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-semibold text-gray-700">Full Name</label>
+                            <input type="text" id="name" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-sm" required placeholder="Jane Doe">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-semibold text-gray-700">Email Address</label>
+                            <input type="email" id="email" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-sm" required placeholder="name@example.com">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-semibold text-gray-700">Your Detailed Message</label>
+                            <textarea id="message" rows="4" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-sm" required placeholder="Please include your Booking ID (e.g., WNG-123456) if applicable..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-wg-accent text-white font-bold text-lg py-3 rounded-lg shadow-xl hover:bg-wg-dark transition transform hover:scale-[1.005]">
+                            <i class="fas fa-paper-plane mr-2"></i> Submit Inquiry
+                        </button>
+                    </form>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-5 bg-wg-light-teal border border-wg-primary/30 rounded-xl text-center shadow-lg">
+                        <i class="fas fa-phone-alt text-3xl text-wg-dark mb-2"></i>
+                        <h3 class="font-bold text-gray-800">24/7 Phone Support</h3>
+                        <p class="text-xl font-extrabold text-wg-accent mt-1">1-800-999-0000</p>
+                        <span class="text-xs text-gray-500">Best for urgent issues</span>
+                    </div>
+                    <div class="p-5 bg-wg-light-teal border border-wg-primary/30 rounded-xl text-center shadow-lg">
+                        <i class="fas fa-location-arrow text-3xl text-wg-dark mb-2"></i>
+                        <h3 class="font-bold text-gray-800">Visit Our Office</h3>
+                        <p class="text-sm font-extrabold text-wg-accent mt-1">New Delhi, India</p>
+                        <span class="text-xs text-gray-500">View Map (Placeholder)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                    Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                </a>
+                <p class="text-sm mt-4">&copy; 2025 WanderGo.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">About Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">FAQ</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Contact Us</h4>
+                <p class="text-sm">Email: info@wandergo.com</p>
+                <p class="text-xl font-bold text-white mt-2">1-800-999-0000</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-700 mt-8 pt-6 text-center">
+            <p class="text-xs text-gray-500">We Accept: Visa, MasterCard, PayPal</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- CHATBOT LOGIC (Ultimate Smart Simulation) ---
+
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+
+        // Ultimate Knowledge Base for complex and contextual answers
+        const knowledgeBase = [{
+            keywords: ['hello', 'hi'],
+            response: "Hello! I'm **WanderBot**, your AI travel assistant. I can help with complex queries like **Flight cancellation policy** or **hotel refund timelines**. What's your question?"
+        }, {
+            keywords: ['cancel', 'hotel'],
+            response: "To **cancel your hotel booking**, log into your account and select the reservation. Cancellations are instant, but the refund amount depends on the **hotel's specific policy** (e.g., 48 hours before check-in). Review your booking confirmation for details."
+        }, {
+            keywords: ['cancel', 'flight'],
+            response: "To **cancel your flight**, please note that low-cost carrier tickets are often non-refundable, only taxes are returned. For full-service flights, cancellation fees and rules vary by airline fare class. Check your e-ticket first."
+        }, {
+            keywords: ['refund', 'time'],
+            response: "Refunds for cancelled bookings are processed immediately on our end. The amount takes **5-7 business days** to reflect in your bank/card statement, depending on your bank's processing time. Please wait 7 days before contacting us."
+        }, {
+            keywords: ['change', 'date', 'flight'],
+            response: "Flight date changes usually require a **rebooking fee** and the difference in fare. This is often complex and requires manual intervention. Please use the **Contact Form** on the right for a specialist."
+        }, {
+            keywords: ['change', 'date', 'hotel'],
+            response: "Hotel date changes are simpler, but subject to room availability and pricing. You can often modify this yourself in your 'Booking Summary'. If the option isn't available, submit a request via the form."
+        }, {
+            keywords: ['baggage', 'allowance'],
+            response: "Baggage rules are determined by the **airline**, not WanderGo. For most economy flights, standard check-in is 15-20kg. Always confirm the exact limits on your flight e-ticket to avoid fees."
+        }, {
+            keywords: ['payment', 'failed', 'issue'],
+            response: "I understand that payment issues are frustrating. First, check with your bank. If the issue persists, please use an alternative payment method (Card/PayPal) or call our 24/7 line at **1-800-999-0000** for immediate help."
+        }, {
+            keywords: ['book', 'best', 'deal'],
+            response: "Our best deals are listed prominently on the homepages! For hotels, look for the '**WanderGo Special**' tag. For flights, look for the cheapest price displayed first (usually basic economy)."
+        }, {
+            keywords: ['thank you', 'thanks', 'bye'],
+            response: "You're very welcome! If you need anything else, just ask. Safe travels with WanderGo!"
+        }];
+
+        // 1. Initial greeting
+        document.addEventListener('DOMContentLoaded', () => {
+            appendMessage(knowledgeBase.find(item => item.keywords.includes('hello')).response, 'bot');
+        });
+
+        // 2. Function to add messages to the chat window
+        function appendMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] p-3 text-sm ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+
+            bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            messageDiv.appendChild(bubble);
+            chatWindow.appendChild(messageDiv);
+
+            // Scroll to the bottom
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // 3. Function to simulate AI response generation
+        function getBotResponse(userInput) {
+            const normalizedInput = userInput.toLowerCase().trim();
+            const inputWords = normalizedInput.split(/\s+/).filter(word => word.length > 2);
+
+            // Check for complex/contextual matches
+            for (const item of knowledgeBase) {
+                // If all of the item's keywords are present in the user input, it's a match
+                const matchScore = item.keywords.filter(keyword => inputWords.some(userWord => userWord.includes(keyword))).length;
+
+                // Priority matching: if all keywords match, or if it's a simple match (1 keyword)
+                if (matchScore === item.keywords.length && item.keywords.length > 1) {
+                    return item.response;
+                }
+            }
+            // Check for single keyword matches (lower priority)
+            for (const item of knowledgeBase) {
+                if (item.keywords.length === 1 && inputWords.some(userWord => userWord.includes(item.keywords[0]))) {
+                    return item.response;
+                }
+            }
+
+            // Ultimate Fallback for unique/unmatched questions
+            return `I'm still learning and cannot process the complex query: "${userInput}". For a unique request like this, please choose the best human support method below:
+            <br><br>
+            1. 📞 **Call Us:** For urgent assistance (24/7: 1-800-999-0000).
+            <br>
+            2. 📧 **Email Us:** Use the form on the right for detailed, non-urgent issues.
+            <br>
+            3. 💬 **Chat with an Agent:** Type 'human' to request a live agent (during business hours).`;
+        }
+
+        // 4. Handle Chat Submission
+        function handleChatSubmit(event) {
+            event.preventDefault();
+            const userInput = chatInput.value;
+
+            if (!userInput) return;
+
+            // 1. Append User Message
+            appendMessage(userInput, 'user');
+            chatInput.value = '';
+
+            // 2. Show Typing Indicator
+            const typingIndicatorWrapper = document.createElement('div');
+            typingIndicatorWrapper.className = 'flex justify-start';
+            typingIndicatorWrapper.innerHTML = `
+                <div class="p-3 bg-white bot-message typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatWindow.appendChild(typingIndicatorWrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+
+            // 3. Get and Append Bot Response after a delay
+            setTimeout(() => {
+                const botResponse = getBotResponse(userInput);
+                chatWindow.removeChild(typingIndicatorWrapper); // Remove typing indicator
+                appendMessage(botResponse, 'bot');
+            }, 1200); // Simulate a 1.2-second delay for the AI to 'think'
+        }
+
+        // --- CONTACT FORM LOGIC ---
+        function submitContactForm(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            alert(`✅ Thank you, ${name}! Your inquiry has been submitted successfully. A specialist will respond to ${email} within 12 hours. For urgent matters, please call 1-800-999-0000.`);
+
+            // Clear the form
+            document.getElementById('contact-form').reset();
+        }
+    </script>
+</body>
+
+</html>

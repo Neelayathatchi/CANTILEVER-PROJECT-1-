@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderGo - Hotels | Find Your Stay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wg-primary': '#03a6a6',
+                        'wg-dark': '#027a7a',
+                        'wg-accent': '#F4A261',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base styles */
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+        }
+        
+        .nav-link {
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #03a6a6 !important;
+        }
+        /* Main Search Box Styling */
+        
+        .search-container {
+            background-color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        .input-field-wrapper {
+            border-right: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1rem;
+            min-width: 0;
+        }
+        
+        .input-field-wrapper:last-child {
+            border-right: none;
+        }
+        
+        .search-btn {
+            background-color: #F4A261;
+            background-image: linear-gradient(180deg, #F4A261 0%, #e09459 100%);
+            box-shadow: 0 4px 15px rgba(244, 162, 97, 0.6);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 162, 97, 0.8);
+        }
+        
+        .destination-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .destination-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(3, 166, 166, 0.2);
+        }
+        
+        .teal-bg-section {
+            background-color: #03a6a6;
+            background-image: linear-gradient(90deg, #03a6a6 0%, #027a7a 100%);
+        }
+        
+        .custom-input {
+            border: none;
+            padding: 0;
+            margin-top: 4px;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            font-weight: 600;
+            color: #1f2937;
+            width: 100%;
+            background: transparent;
+            outline: none;
+        }
+        
+        .custom-input::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        /* Modal specific styles */
+        
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+            visibility: hidden;
+            opacity: 0;
+            z-index: 50;
+        }
+        
+        .modal.open {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        #invoice-modal {
+            /* Keep hidden by default, only used for print() */
+            display: none;
+        }
+        
+        .bg-gray-50-force {
+            background-color: #f9fafb !important;
+        }
+        
+        .border-b-wg-primary {
+            border-color: #03a6a6 !important;
+        }
+        /* Invoice specific styling for printing (PDF generation) */
+        
+        @media print {
+            /* Hide everything except the invoice content */
+            body>*:not(#invoice-modal) {
+                display: none !important;
+            }
+            /* Make the invoice full screen for print layout */
+            #invoice-modal {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: white;
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                z-index: 100;
+            }
+            /* Ensure the invoice content box is centered and has no shadow */
+            #invoice-content-to-print {
+                display: block !important;
+                max-width: 800px;
+                margin: 0 auto;
+                box-shadow: none;
+                padding: 40px 20px;
+                height: 100%;
+            }
+            /* Force colors for print */
+            .bg-wg-primary {
+                background-color: #03a6a6 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .text-white {
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .text-wg-primary {
+                color: #03a6a6 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .text-wg-accent {
+                color: #F4A261 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .text-wg-dark {
+                color: #027a7a !important;
+                -webkit-print-color-adjust: exact;
+            }
+            /* Set border color explicitly for print */
+            .border-b-wg-primary {
+                border-color: #03a6a6 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .bg-gray-50-force {
+                background-color: #f9fafb !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .border-b {
+                border-bottom-width: 1px;
+                border-color: #e5e7eb;
+            }
+            /* Custom double border for grand total */
+            .double-border-wg-primary {
+                border-top: 4px double #03a6a6 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="custom-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-xl transform transition-transform duration-300 scale-95">
+            <div id="modal-content">
+                <h3 id="modal-title" class="text-xl font-bold text-wg-primary mb-3"></h3>
+                <p id="modal-message" class="text-gray-700 mb-4"></p>
+                <button onclick="closeModal()" class="w-full bg-wg-accent text-white font-semibold py-2 rounded-lg hover:bg-wg-primary transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="booking-modal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg transform transition-transform duration-300 scale-95">
+            <h3 class="text-2xl font-bold text-wg-primary mb-4 border-b pb-2">Confirm Your Booking</h3>
+
+            <div id="booking-details-summary" class="bg-gray-50 p-4 rounded-lg mb-4 text-sm">
+            </div>
+
+            <form id="booking-form" onsubmit="confirmBooking(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label for="full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="full_name" class="custom-input border border-gray-300 rounded-lg p-2 mt-1" placeholder="Jane Doe" required>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                        <input type="email" id="email" class="custom-input border border-gray-300 rounded-lg p-2 mt-1" placeholder="jane@example.com" required>
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" id="phone" class="custom-input border border-gray-300 rounded-lg p-2 mt-1" placeholder="+1234567890" required>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-6">
+                    <button type="button" onclick="closeBookingModal()" class="text-gray-600 hover:text-gray-900 transition font-medium">Cancel</button>
+                    <button type="submit" class="search-btn text-white font-semibold py-3 px-8 rounded-lg">
+                        Pay & Book Now <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="invoice-modal">
+        <div id="invoice-content-to-print">
+            <div id="invoice-body">
+            </div>
+        </div>
+    </div>
+
+
+    <header class="sticky top-0 z-20 shadow-lg" style="background-color: #03a6a6;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" onclick="alertModal('Navigating to Flights/Home page...', 'Navigation')" class="text-3xl font-extrabold tracking-tight text-white">
+                        Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                    </a>
+                </div>
+
+                <nav class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Home</a>
+                    <a href="flight.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">✈️Flights</a>
+
+                    <a href="hotel.html" class="text-white font-bold transition duration-150 ease-in-out border-b-2 border-white"><i class="fas fa-hotel mr-2"></i>🏨Hotels</a>
+
+                    <a href="contact.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition">
+                        <i class="fas fa-headset mr-2"></i> Contact/Support
+                    </a>
+
+                    <a href="login.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition">
+                        <i class="fas fa-user-circle mr-2"></i> Login
+                    </a>
+
+                </nav>
+                <button class="md:hidden text-white hover:text-gray-200 focus:outline-none" onclick="alertModal('Mobile menu functionality coming soon!', 'Menu')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <div class="teal-bg-section pt-10 pb-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-2 leading-tight">Book Hotels Online</h1>
+                <p class="text-xl text-gray-200 mb-8">Best Deals on Hotels, Resorts, and Guesthouses</p>
+
+                <div class="search-container rounded-xl">
+                    <form class="flex flex-col lg:flex-row divide-y lg:divide-y-0 divide-gray-200 p-2" onsubmit="handleHotelSearch(event)">
+
+                        <div class="input-field-wrapper w-full lg:w-5/12 cursor-pointer" onclick="document.getElementById('city_input').focus()">
+                            <label class="text-xs font-medium text-gray-500 uppercase flex items-center mb-1">
+                                <i class="fas fa-map-marker-alt text-lg text-wg-primary mr-2"></i> CITY, HOTEL, LOCALITY
+                            </label>
+                            <input type="text" id="city_input" placeholder="Enter City or Location" class="custom-input focus:outline-none" required>
+                            <span class="text-xs text-gray-400 mt-1">e.g., London, New Delhi, or Juhu</span>
+                        </div>
+
+
+                        <div class="input-field-wrapper w-full lg:w-2/12 cursor-pointer" onclick="document.getElementById('checkin_date').focus()">
+                            <label class="text-xs font-medium text-gray-500 uppercase flex items-center mb-1">
+                                <i class="fas fa-calendar-check text-lg text-wg-primary mr-2"></i> CHECK IN
+                            </label>
+                            <input type="date" id="checkin_date" class="custom-input appearance-none" required>
+                            <span class="text-xs text-gray-400 mt-1 date-display">Select Date</span>
+                        </div>
+
+                        <div class="input-field-wrapper w-full lg:w-2/12 cursor-pointer" onclick="document.getElementById('checkout_date').focus()">
+                            <label class="text-xs font-medium text-gray-500 uppercase flex items-center mb-1">
+                                <i class="fas fa-calendar-alt text-lg text-wg-primary mr-2"></i> CHECK OUT
+                            </label>
+                            <input type="date" id="checkout_date" class="custom-input appearance-none" required>
+                            <span class="text-xs text-gray-400 mt-1 date-display">Select Date</span>
+                        </div>
+
+                        <div class="input-field-wrapper w-full lg:w-3/12 cursor-pointer" onclick="toggleRoomGuestModal(event)">
+                            <label class="text-xs font-medium text-gray-500 uppercase flex items-center mb-1">
+                                <i class="fas fa-users text-lg text-wg-primary mr-2"></i> ROOMS & GUESTS
+                            </label>
+                            <div class="flex justify-between items-center mt-1">
+                                <span id="room_guest_display" class="custom-input pr-2">1 Room, 2 Adults</span>
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                            <span class="text-xs text-gray-400 mt-1">Tap to edit guest details</span>
+                            <div id="room_guest_modal" class="absolute bg-white p-4 rounded-xl shadow-2xl mt-4 hidden right-0 lg:right-4 w-64 border border-gray-100 z-30">
+                                <p class="font-bold mb-2">Configure Guests</p>
+                                <div class="flex justify-between items-center py-2 border-b">
+                                    <span>Adults (Max 9)</span>
+                                    <input type="number" id="adults_count" value="2" min="1" max="9" class="w-16 p-1 border rounded text-center">
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span>Rooms (Max 10)</span>
+                                    <input type="number" id="rooms_count" value="1" min="1" max="10" class="w-16 p-1 border rounded text-center">
+                                </div>
+                                <button type="button" onclick="updateRoomGuestDisplay()" class="w-full mt-3 bg-wg-primary text-white p-2 rounded-lg hover:bg-wg-dark">Done</button>
+                            </div>
+                        </div>
+
+                    </form>
+
+                    <div class="relative flex justify-center -mt-10 mb-6">
+                        <button type="submit" class="search-btn text-white font-bold text-xl py-4 px-20 rounded-full shadow-lg hover:shadow-2xl focus:outline-none" onclick="handleHotelSearch()">
+                            <i class="fas fa-search mr-3"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Featured Search Results (60 Hotels)</h2>
+            <div id="hotel-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            </div>
+        </section>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+            <div class="teal-bg-section p-8 rounded-xl flex flex-col md:flex-row justify-between items-center shadow-2xl">
+                <div class="text-center md:text-left">
+                    <h3 class="text-3xl font-extrabold text-white mb-2">WanderGo Exclusive Offer!</h3>
+                    <p class="text-gray-100 text-lg">Save up to 40% on your next international hotel booking.</p>
+                </div>
+                <button onclick="alertModal('Offer Applied! You will see discounts on search results.', 'Offer')" class="mt-4 md:mt-0 bg-wg-accent text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105">
+                    Claim Offer
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+
+            <div>
+                <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                    Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                </a>
+                <p class="text-sm mt-4">&copy; 2025 WanderGo. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">About Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Careers</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Terms & Conditions</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">FAQ</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Booking Help</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-white mb-4">Contact Us</h4>
+                <p class="text-sm">Email: info@wandergo.com</p>
+                <p class="text-xl font-bold text-white mt-2">1-800-999-0000</p>
+                <div class="mt-4">
+                    <label class="block text-sm font-semibold text-white mb-2">Newsletter</label>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="p-2 text-gray-800 rounded-l-lg w-full focus:outline-none">
+                        <button class="bg-wg-primary text-white p-2 rounded-r-lg hover:bg-wg-dark transition">Go</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-700 mt-8 pt-6 text-center">
+            <p class="text-xs text-gray-500">We Accept: Visa, MasterCard, PayPal</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Hotel Data (60 Properties) ---
+        const HOTEL_DATA = [{
+            id: 101,
+            name: "The Grand Regal",
+            city: "New Delhi",
+            rating: 5,
+            price: 12000,
+            type: "Luxury Hotel"
+        }, {
+            id: 102,
+            name: "Sunset Beach Resort",
+            city: "Goa",
+            rating: 4.5,
+            price: 8500,
+            type: "Beach Resort"
+        }, {
+            id: 103,
+            name: "City Centre Budget Stay",
+            city: "Mumbai",
+            rating: 3,
+            price: 3200,
+            type: "Budget Hotel"
+        }, {
+            id: 104,
+            name: "The Majestic Palace",
+            city: "Jaipur",
+            rating: 5,
+            price: 15500,
+            type: "Heritage Stay"
+        }, {
+            id: 105,
+            name: "Lake View Cottages",
+            city: "Udaipur",
+            rating: 4,
+            price: 6800,
+            type: "Boutique Hotel"
+        }, {
+            id: 106,
+            name: "Tech Park Residences",
+            city: "Bangalore",
+            rating: 4,
+            price: 4500,
+            type: "Business Hotel"
+        }, {
+            id: 107,
+            name: "Green Valley Farmhouse",
+            city: "Pune",
+            rating: 3.5,
+            price: 5100,
+            type: "Guesthouse"
+        }, {
+            id: 108,
+            name: "The Bay Tower Suites",
+            city: "Chennai",
+            rating: 4.5,
+            price: 9200,
+            type: "Luxury Hotel"
+        }, {
+            id: 109,
+            name: "Himalayan Retreat",
+            city: "Manali",
+            rating: 4,
+            price: 7900,
+            type: "Mountain Lodge"
+        }, {
+            id: 110,
+            name: "Coastal Inn & Suites",
+            city: "Kochi",
+            rating: 3.5,
+            price: 4800,
+            type: "Inn"
+        }, {
+            id: 111,
+            name: "Desert Sands Camp",
+            city: "Jaisalmer",
+            rating: 4,
+            price: 11000,
+            type: "Glamping"
+        }, {
+            id: 112,
+            name: "Riverside Wellness Center",
+            city: "Rishikesh",
+            rating: 4.5,
+            price: 10500,
+            type: "Spa Resort"
+        }, {
+            id: 113,
+            name: "The Downtown Loft",
+            city: "Hyderabad",
+            rating: 3.8,
+            price: 4100,
+            type: "Apartment"
+        }, {
+            id: 114,
+            name: "Golden Triangle Residency",
+            city: "Agra",
+            rating: 4,
+            price: 5900,
+            type: "Hotel"
+        }, {
+            id: 115,
+            name: "Old Quarter Heritage Stay",
+            city: "Varanasi",
+            rating: 3.2,
+            price: 2800,
+            type: "Guesthouse"
+        }, {
+            id: 116,
+            name: "Starling Suites",
+            city: "Guwahati",
+            rating: 3.7,
+            price: 3500,
+            type: "Business Hotel"
+        }, {
+            id: 117,
+            name: "Malabar Grandeur",
+            city: "Kozhikode",
+            rating: 4.2,
+            price: 7100,
+            type: "Hotel"
+        }, {
+            id: 118,
+            name: "Pink City Boutique",
+            city: "Jaipur",
+            rating: 4.6,
+            price: 9800,
+            type: "Boutique Hotel"
+        }, {
+            id: 119,
+            name: "Palm Tree Villas",
+            city: "Goa",
+            rating: 4.1,
+            price: 6500,
+            type: "Villa"
+        }, {
+            id: 120,
+            name: "Metropolis Executive",
+            city: "Kolkata",
+            rating: 3.9,
+            price: 3800,
+            type: "Executive Stay"
+        }, {
+            id: 121,
+            name: "Spice Route Inn",
+            city: "Chennai",
+            rating: 3.5,
+            price: 4200,
+            type: "Inn"
+        }, {
+            id: 122,
+            name: "Silicon Stay Suites",
+            city: "Bangalore",
+            rating: 4.1,
+            price: 5500,
+            type: "Business Hotel"
+        }, {
+            id: 123,
+            name: "Marigold Heritage",
+            city: "Udaipur",
+            rating: 4.8,
+            price: 13500,
+            type: "Heritage Stay"
+        }, {
+            id: 124,
+            name: "Palmshore Grand",
+            city: "Mumbai",
+            rating: 4.5,
+            price: 9500,
+            type: "Luxury Hotel"
+        }, {
+            id: 125,
+            name: "Serene Hills Resort",
+            city: "Ooty",
+            rating: 4.3,
+            price: 7200,
+            type: "Resort"
+        }, {
+            id: 126,
+            name: "Coastal Breeze Hostel",
+            city: "Goa",
+            rating: 3.2,
+            price: 1500,
+            type: "Hostel"
+        }, {
+            id: 127,
+            name: "Emerald Gardens",
+            city: "Kolkata",
+            rating: 3.9,
+            price: 4900,
+            type: "Hotel"
+        }, {
+            id: 128,
+            name: "Desert Oasis Glamp",
+            city: "Jodhpur",
+            rating: 4.6,
+            price: 12000,
+            type: "Glamping"
+        }, {
+            id: 129,
+            name: "Metro Executive Pad",
+            city: "Pune",
+            rating: 3.8,
+            price: 3900,
+            type: "Apartment"
+        }, {
+            id: 130,
+            name: "Temple View Guesthouse",
+            city: "Madurai",
+            rating: 3.0,
+            price: 2500,
+            type: "Guesthouse"
+        }, {
+            id: 131,
+            name: "Arctic Star Residency",
+            city: "Leh",
+            rating: 4.2,
+            price: 8100,
+            type: "Mountain Lodge"
+        }, {
+            id: 132,
+            name: "Sunlit Villas & Spa",
+            city: "Jaipur",
+            rating: 5.0,
+            price: 18000,
+            type: "Spa Resort"
+        }, {
+            id: 133,
+            name: "Ganges Grandeur",
+            city: "Varanasi",
+            rating: 3.7,
+            price: 4400,
+            type: "Hotel"
+        }, {
+            id: 134,
+            name: "Cyber Hub Suites",
+            city: "Gurgaon",
+            rating: 4.0,
+            price: 6000,
+            type: "Business Hotel"
+        }, {
+            id: 135,
+            name: "Backwater Beauty",
+            city: "Alleppey",
+            rating: 4.7,
+            price: 10500,
+            type: "Boutique Hotel"
+        }, {
+            id: 136,
+            name: "Red Fort Inn",
+            city: "New Delhi",
+            rating: 3.4,
+            price: 3000,
+            type: "Budget Hotel"
+        }, {
+            id: 137,
+            name: "Airport Transit Lodge",
+            city: "Hyderabad",
+            rating: 3.6,
+            price: 5800,
+            type: "Executive Stay"
+        }, {
+            id: 138,
+            name: "Valley View Homestay",
+            city: "Dehradun",
+            rating: 4.1,
+            price: 6300,
+            type: "Homestay"
+        }, {
+            id: 139,
+            name: "Ocean Drive Retreat",
+            city: "Vizag",
+            rating: 4.3,
+            price: 7800,
+            type: "Beach Resort"
+        }, {
+            id: 140,
+            name: "Modern Studio Stays",
+            city: "Ahmedabad",
+            rating: 3.9,
+            price: 4000,
+            type: "Apartment"
+        }, {
+            id: 141,
+            name: "Golden Tulip Suites",
+            city: "Goa",
+            rating: 4.4,
+            price: 8900,
+            type: "Hotel"
+        }, {
+            id: 142,
+            name: "Sapphire Resort",
+            city: "Munnar",
+            rating: 4.6,
+            price: 9900,
+            type: "Resort"
+        }, {
+            id: 143,
+            name: "Business Class Stay",
+            city: "Mumbai",
+            rating: 3.5,
+            price: 4500,
+            type: "Executive Stay"
+        }, {
+            id: 144,
+            name: "Royal Residency",
+            city: "Agra",
+            rating: 4.0,
+            price: 5100,
+            type: "Hotel"
+        }, {
+            id: 145,
+            name: "Shanti Guesthouse",
+            city: "Rishikesh",
+            rating: 3.3,
+            price: 2700,
+            type: "Guesthouse"
+        }, {
+            id: 146,
+            name: "Central Park Hotel",
+            city: "Chandigarh",
+            rating: 4.2,
+            price: 6800,
+            type: "Boutique Hotel"
+        }, {
+            id: 147,
+            name: "Tech Towers Hotel",
+            city: "Chennai",
+            rating: 3.7,
+            price: 5200,
+            type: "Business Hotel"
+        }, {
+            id: 148,
+            name: "Spice Trails Inn",
+            city: "Kochi",
+            rating: 4.1,
+            price: 4900,
+            type: "Inn"
+        }, {
+            id: 149,
+            name: "Himalayan Heights",
+            city: "Shimla",
+            rating: 4.5,
+            price: 8800,
+            type: "Mountain Lodge"
+        }, {
+            id: 150,
+            name: "Island Getaway Resort",
+            city: "Andaman",
+            rating: 5.0,
+            price: 19500,
+            type: "Beach Resort"
+        }, {
+            id: 151,
+            name: "The Cube Apartments",
+            city: "Noida",
+            rating: 3.8,
+            price: 4600,
+            type: "Apartment"
+        }, {
+            id: 152,
+            name: "Pink Sands Villa",
+            city: "Goa",
+            rating: 4.7,
+            price: 11500,
+            type: "Villa"
+        }, {
+            id: 153,
+            name: "Green City Lodge",
+            city: "Nagpur",
+            rating: 3.6,
+            price: 3200,
+            type: "Hotel"
+        }, {
+            id: 154,
+            name: "Heritage Haveli",
+            city: "Jaisalmer",
+            rating: 4.3,
+            price: 7500,
+            type: "Heritage Stay"
+        }, {
+            id: 155,
+            name: "Corporate Comforts",
+            city: "Kolkata",
+            rating: 4.0,
+            price: 5400,
+            type: "Executive Stay"
+        }, {
+            id: 156,
+            name: "Sun Valley Farm",
+            city: "Lonavala",
+            rating: 4.1,
+            price: 6700,
+            type: "Guesthouse"
+        }, {
+            id: 157,
+            name: "Downtown Budget Inn",
+            city: "Pune",
+            rating: 3.1,
+            price: 2900,
+            type: "Budget Hotel"
+        }, {
+            id: 158,
+            name: "Marina View Hotel",
+            city: "Mumbai",
+            rating: 4.8,
+            price: 14500,
+            type: "Luxury Hotel"
+        }, {
+            id: 159,
+            name: "Golden Retreat",
+            city: "Wayanad",
+            rating: 4.5,
+            price: 8300,
+            type: "Resort"
+        }, {
+            id: 160,
+            name: "The Capital Grande",
+            city: "New Delhi",
+            rating: 5.0,
+            price: 16000,
+            type: "Luxury Hotel"
+        }, ];
+
+        let currentBooking = {};
+
+        // --- Utility Functions ---
+        function formatPrice(price) {
+            if (price === undefined || price === null) return 'N/A';
+            return `Rs. ${Math.round(price).toLocaleString('en-IN')}`;
+        }
+
+        function getRatingHtml(rating) {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            let html = '';
+            for (let i = 0; i < fullStars; i++) {
+                html += '<i class="fas fa-star text-yellow-400 text-sm"></i>';
+            }
+            if (halfStar) {
+                html += '<i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>';
+            }
+            html += `<span class="ml-1 text-gray-700 font-semibold">${rating.toFixed(1)}</span>`;
+            return html;
+        }
+
+        // --- DYNAMIC PRICE CALCULATION FUNCTION ---
+        function calculateBookingTotal(hotelPrice, nights, rooms, adults) {
+            // 1. Base Calculation: Price per night * Nights * Rooms
+            const baseFare = hotelPrice * nights * rooms;
+
+            // 2. Taxes and Fees (Dynamic)
+            // - Tax: 18% GST/VAT 
+            const taxRate = 0.18;
+            const taxes = baseFare * taxRate;
+
+            // - Service Fee: Fixed fee per adult (Rs. 150)
+            const serviceFeePerAdult = 150;
+            // Assuming this fee applies to all adults across all rooms
+            const serviceFees = adults * serviceFeePerAdult;
+
+            // 3. Subtotal
+            const subTotal = baseFare + taxes + serviceFees;
+
+            // 4. Discount (e.g., 5% off for online booking)
+            const discountRate = 0.05;
+            const discount = subTotal * discountRate;
+
+            // 5. Grand Total (round to the nearest whole rupee)
+            const grandTotal = Math.round(subTotal - discount);
+
+            return {
+                baseFare: baseFare,
+                taxes: taxes,
+                serviceFees: serviceFees,
+                subTotal: subTotal,
+                discount: discount,
+                grandTotal: grandTotal
+            };
+        }
+
+
+        // --- Modal Functions (Confirmation Screen) ---
+        const modal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+
+        function alertModal(message, title = 'Notification') {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            modal.classList.add('open');
+            modal.children[0].classList.add('scale-100');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeModal() {
+            modal.children[0].classList.remove('scale-100');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('open');
+            }, 100);
+            // Reset the default modal content structure
+            document.getElementById('modal-content').innerHTML = `
+                <h3 id="modal-title" class="text-xl font-bold text-wg-primary mb-3"></h3>
+                <p id="modal-message" class="text-gray-700 mb-4"></p>
+                <button onclick="closeModal()" class="w-full bg-wg-accent text-white font-semibold py-2 rounded-lg hover:bg-wg-primary transition">
+                    Close
+                </button>`;
+        }
+
+        // --- Room/Guest Modal Functions ---
+        function toggleRoomGuestModal(event) {
+            const modalEl = document.getElementById('room_guest_modal');
+            modalEl.classList.toggle('hidden');
+            event.stopPropagation();
+        }
+
+        function updateRoomGuestDisplay() {
+            const adults = document.getElementById('adults_count').value;
+            const rooms = document.getElementById('rooms_count').value;
+            document.getElementById('room_guest_display').textContent = `${rooms} Room${rooms > 1 ? 's' : ''}, ${adults} Adult${adults > 1 ? 's' : ''}`;
+            document.getElementById('room_guest_modal').classList.add('hidden');
+        }
+
+        // --- Hotel Rendering Function (for main page) ---
+        function renderHotels(hotels) {
+            const container = document.getElementById('hotel-list-container');
+            container.innerHTML = '';
+
+            // Use the currently selected dates/rooms to provide an estimated total
+            const checkin = document.getElementById('checkin_date').value;
+            const checkout = document.getElementById('checkout_date').value;
+            const rooms = parseInt(document.getElementById('rooms_count').value);
+            const adults = parseInt(document.getElementById('adults_count').value);
+
+            const date1 = new Date(checkin);
+            const date2 = new Date(checkout);
+            const timeDiff = date2.getTime() - date1.getTime();
+            let nights = Math.round(timeDiff / (1000 * 3600 * 24));
+            if (nights < 1 || isNaN(nights)) nights = 3;
+
+            hotels.forEach(hotel => {
+                const card = document.createElement('div');
+                card.className = 'destination-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row';
+
+                const priceDetails = calculateBookingTotal(hotel.price, nights, rooms, adults);
+                const mockTotalForCard = priceDetails.grandTotal;
+
+                const cardHtml = `
+                    <div class="md:w-1/3 h-48 md:h-auto overflow-hidden">
+                        <img src="https://placehold.co/400x400/03a6a6/ffffff?text=${hotel.name.replace(/\s/g, '+')}" alt="${hotel.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="md:w-2/3 p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-sm font-medium text-wg-primary">${hotel.city} | ${hotel.type}</span>
+                            <h3 class="font-bold text-xl text-gray-800 mb-1">${hotel.name}</h3>
+                            <p class="text-sm text-gray-600 mb-2 flex items-center">${getRatingHtml(hotel.rating)} &bull; <span class="ml-1">${hotel.type}</span></p>
+                            <p class="text-xs text-gray-500 line-clamp-2">Excellent location near major attractions and business centers. Free cancellation available.</p>
+                        </div>
+                        <div class="mt-3 flex justify-between items-end border-t pt-3">
+                            <div>
+                                <p class="text-sm text-gray-500">Price per night</p>
+                                <p class="text-2xl font-extrabold text-wg-accent">${formatPrice(hotel.price)}</p>
+                                <span class="text-xs text-gray-400">Total Estimate: ${formatPrice(mockTotalForCard)} for ${nights} night${nights > 1 ? 's' : ''}</span>
+                            </div>
+                            <button onclick="openBookingModal(${hotel.id})" 
+                                class="bg-wg-accent text-white font-semibold py-2 px-6 rounded-lg hover:bg-wg-dark transition shadow-md">
+                                <i class="fas fa-bookmark mr-1"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                `;
+                card.innerHTML = cardHtml;
+                container.appendChild(card);
+            });
+        }
+
+        // --- Booking Modal Functions ---
+        function openBookingModal(hotelId) {
+            const hotel = HOTEL_DATA.find(h => h.id === hotelId);
+            if (!hotel) {
+                alertModal("Hotel data not found.", "Error");
+                return;
+            }
+
+            const checkin = document.getElementById('checkin_date').value;
+            const checkout = document.getElementById('checkout_date').value;
+
+            // Calculate nights dynamically
+            const date1 = new Date(checkin);
+            const date2 = new Date(checkout);
+            const timeDiff = date2.getTime() - date1.getTime();
+            let nights = Math.round(timeDiff / (1000 * 3600 * 24));
+            if (nights < 1 || isNaN(nights)) nights = 3; // Default to 3 nights
+
+            const rooms = parseInt(document.getElementById('rooms_count').value);
+            const adults = parseInt(document.getElementById('adults_count').value);
+
+            // Calculate the actual total price and fee breakdown
+            const priceDetails = calculateBookingTotal(hotel.price, nights, rooms, adults);
+
+            currentBooking = {
+                hotel: hotel,
+                checkIn: checkin,
+                checkOut: checkout,
+                nights: nights,
+                rooms: rooms,
+                adults: adults,
+                bookingId: 'WNG-' + Date.now().toString().slice(-5),
+                priceDetails: priceDetails, // Store the dynamic breakdown
+                totalPrice: priceDetails.grandTotal, // Use the dynamically calculated total
+            };
+
+            const summaryHtml = `
+                <p class="font-bold text-lg">${hotel.name}</p>
+                <p class="text-gray-700">${hotel.city} | ${currentBooking.nights} night${currentBooking.nights > 1 ? 's' : ''}, ${currentBooking.rooms} room${currentBooking.rooms > 1 ? 's' : ''}</p>
+                <p class="mt-2">Check-in: <span class="font-semibold">${new Date(checkin).toDateString()}</span></p>
+                <p>Check-out: <span class="font-semibold">${new Date(checkout).toDateString()}</span></p>
+                <p class="mt-3 text-xl font-extrabold text-wg-accent">Total Payable: ${formatPrice(currentBooking.totalPrice)}</p>
+            `;
+
+            document.getElementById('booking-details-summary').innerHTML = summaryHtml;
+            document.getElementById('booking-modal').classList.add('open');
+            document.getElementById('booking-modal').children[0].classList.add('scale-100');
+            document.getElementById('booking-modal').children[0].classList.remove('scale-95');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('booking-modal').children[0].classList.remove('scale-100');
+            document.getElementById('booking-modal').children[0].classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('booking-modal').classList.remove('open');
+            }, 100);
+        }
+
+        function confirmBooking(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('full_name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+
+            currentBooking.guestName = fullName;
+            currentBooking.guestEmail = email;
+            currentBooking.guestPhone = phone;
+            currentBooking.invoiceDate = new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric'
+            }).replace(/\//g, '/');
+
+            closeBookingModal();
+
+            // 1. Generate the invoice HTML structure immediately
+            generateInvoice(currentBooking);
+
+            // 2. Trigger Automatic Download immediately (OPENS PRINT DIALOG)
+            downloadInvoice();
+
+            // 3. Show the LARGE, DETAILED "Confirmation Screen" for 60 seconds
+            const confirmationMessage = `
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle text-6xl text-wg-primary mb-4"></i>
+                    <h4 class="text-3xl font-extrabold text-wg-primary mb-4">BOOKING CONFIRMED SUCCESSFULLY!</h4>
+                    <p class="text-lg text-gray-700">Dear **${fullName}**, your reservation at **${currentBooking.hotel.name}** is confirmed.</p>
+                    
+                    <div class="mt-6 bg-gray-50 p-4 rounded-lg text-left border-2 border-wg-primary">
+                        <h5 class="text-xl font-bold text-wg-dark mb-2">Full Booking Details</h5>
+                        <div class="grid grid-cols-2 gap-y-2 text-sm">
+                            <p class="font-semibold text-gray-600">Booking ID:</p><p class="text-wg-accent font-mono font-bold">${currentBooking.bookingId}</p>
+                            <p class="font-semibold text-gray-600">Hotel & City:</p><p class="font-bold">${currentBooking.hotel.name}, ${currentBooking.hotel.city}</p>
+                            <p class="font-semibold text-gray-600">Check-in Date:</p><p>${new Date(currentBooking.checkIn).toDateString()}</p>
+                            <p class="font-semibold text-gray-600">Check-out Date:</p><p>${new Date(currentBooking.checkOut).toDateString()}</p>
+                            <p class="font-semibold text-gray-600">Nights:</p><p>${currentBooking.nights}</p>
+                            <p class="font-semibold text-gray-600">Rooms & Guests:</p><p>${currentBooking.rooms} Room${currentBooking.rooms > 1 ? 's' : ''}, ${currentBooking.adults} Adult${currentBooking.adults > 1 ? 's' : ''}</p>
+                        </div>
+                        <p class="mt-4 text-2xl font-extrabold text-wg-primary text-center">Total Paid: ${formatPrice(currentBooking.totalPrice)}</p>
+                    </div>
+                    
+                    <p class="text-sm text-gray-500 mt-6">This confirmation will stay on screen for one minute. The **E-Ticket/Tax Invoice PDF** has started downloading.</p>
+                </div>
+            `;
+
+            // Apply the detailed content and show the modal
+            document.getElementById('modal-content').innerHTML = confirmationMessage;
+            alertModal('', 'Success');
+
+            // 4. Set timeout to close the modal after 1 minute (60 seconds)
+            setTimeout(() => {
+                closeModal();
+            }, 10000);
+        }
+
+        // --- Invoice/Download Functions ---
+
+        function generateInvoice(booking) {
+            const invoiceBody = document.getElementById('invoice-body');
+
+            // --- Use DYNAMIC CALCULATIONS ---
+            const baseFare = booking.priceDetails.baseFare;
+            const taxes = booking.priceDetails.taxes;
+            const serviceFees = booking.priceDetails.serviceFees;
+            const subTotal = booking.priceDetails.subTotal;
+            const discount = booking.priceDetails.discount;
+            const grandTotal = booking.priceDetails.grandTotal;
+
+            const paxCount = booking.adults;
+            const guestPaxText = `${booking.guestName} (${paxCount} Pax)`;
+            const invoiceDateFormatted = new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric'
+            }).replace(/\//g, '/');
+
+            // --- Hotel Segment Mock Data ---
+            const mockSegment = {
+                Rooms: `${booking.rooms} Room${booking.rooms > 1 ? 's' : ''}`,
+                Route: `${booking.hotel.name} - ${booking.hotel.city}`,
+                Date: new Date(booking.checkIn).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short'
+                }),
+                TimeDuration: `${booking.nights} Night${booking.nights > 1 ? 's' : ''}`,
+                Guests: `${booking.adults} Adult${booking.adults > 1 ? 's' : ''}`,
+            };
+
+            const invoiceHtml = `
+                <div class="p-4 md:p-8">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h1 class="text-4xl font-extrabold text-wg-primary leading-none">
+                                Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                            </h1>
+                            <p class="text-xl text-wg-primary font-semibold mt-1">E-Ticket / Tax Invoice</p>
+                        </div>
+                        <div class="text-right text-sm">
+                            <p class="text-base text-wg-primary font-bold">Booking ID: <span class="font-mono text-wg-dark ml-2">${booking.bookingId}</span></p>
+                            <p class="text-base text-wg-primary font-bold">Invoice Date: <span class="text-wg-dark ml-2">${invoiceDateFormatted}</span></p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-wg-primary mb-3 border-b-2 border-b-wg-primary pb-1">Traveler & Booking Information</h2>
+                    <div class="flex justify-between items-start text-gray-700 text-base mb-6">
+                        <div class="leading-relaxed">
+                            <p class="font-semibold">Booking Name: <span class="text-gray-900">${guestPaxText}</span></p>
+                            <p class="font-semibold">Email: <span class="text-gray-900">${booking.guestEmail}</span></p>
+                        </div>
+                        <div class="text-right leading-relaxed">
+                            <p class="font-semibold">Contact: <span class="text-gray-900">${booking.guestPhone}</span></p>
+                            <p class="font-semibold text-white select-none">Contact: +00 00000 00000</p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-wg-primary mb-3 border-b-2 border-b-wg-primary pb-1">Hotel Segment Details</h2>
+                    <div class="border border-gray-300 rounded-lg overflow-hidden mb-8">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="bg-wg-primary text-white font-semibold">
+                                    <td class="p-3 w-1/5">Room/s</td>
+                                    <td class="p-3 w-2/5">Hotel & Location</td>
+                                    <td class="p-3 w-1/10">Check-in</td>
+                                    <td class="p-3 w-1/5">Nights/Duration</td>
+                                    <td class="p-3 w-1/10">Guests</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-gray-50-force text-gray-700">
+                                    <td class="p-3">${mockSegment.Rooms}</td>
+                                    <td class="p-3">${mockSegment.Route}</td>
+                                    <td class="p-3">${mockSegment.Date}</td>
+                                    <td class="p-3">${mockSegment.TimeDuration}</td>
+                                    <td class="p-3">${mockSegment.Guests}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-wg-primary mb-3 border-b-2 border-b-wg-primary pb-1">Amount Structure</h2>
+                    <div class="max-w-md ml-auto text-base text-gray-700">
+                        <div class="grid grid-cols-2 justify-between py-1 font-semibold text-gray-800 bg-gray-50-force border-b border-gray-300">
+                            <span class="p-2">Fee Description</span>
+                            <span class="text-right p-2">Amount (Rs.)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 justify-between py-1 border-b border-gray-200">
+                            <span class="py-1">Base Fare (${booking.rooms} Room${booking.rooms > 1 ? 's' : ''} x ${booking.nights} Night${booking.nights > 1 ? 's' : ''})</span>
+                            <span class="text-right py-1">${formatPrice(baseFare)}</span>
+                        </div>
+                        <div class="grid grid-cols-2 justify-between py-1 border-b border-gray-200">
+                            <span class="py-1">Tax (GST/VAT @ 18%)</span>
+                            <span class="text-right py-1">${formatPrice(taxes)}</span>
+                        </div>
+                        <div class="grid grid-cols-2 justify-between py-1 border-b border-gray-200">
+                            <span class="py-1">Service & Security Fee (${booking.adults} Guest${booking.adults > 1 ? 's' : ''})</span>
+                            <span class="text-right py-1">${formatPrice(serviceFees)}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 justify-between py-2 mt-2 font-bold text-wg-primary border-t border-b-2 border-gray-300">
+                            <span class="text-lg">Subtotal (Total Before Discount)</span>
+                            <span class="text-right text-lg">${formatPrice(subTotal)}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 justify-between py-1 text-wg-accent font-semibold">
+                            <span>Online Booking Discount (5%)</span>
+                            <span class="text-right">- ${formatPrice(discount)}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end items-end">
+                        <div class="w-full max-w-md flex justify-between items-baseline">
+                            <p class="text-4xl font-extrabold text-wg-accent">GRAND TOTAL</p>
+                            <div class="text-right double-border-wg-primary pt-2">
+                                <span class="text-4xl font-extrabold text-wg-primary">${formatPrice(grandTotal)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mt-12 text-center text-gray-500 text-sm">
+                        This is an electronically generated invoice and does not require a physical signature.
+                    </p>
+                </div>
+            `;
+
+            invoiceBody.innerHTML = invoiceHtml;
+            // The invoice-modal is only shown briefly for the print process
+            document.getElementById('invoice-modal').style.display = 'block';
+        }
+
+        function downloadInvoice() {
+            // Triggers the browser's print dialog (save as PDF)
+            window.print();
+
+            // Hide the invoice modal element after the print dialog is initiated
+            setTimeout(() => {
+                document.getElementById('invoice-modal').style.display = 'none';
+            }, 500);
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            const threeDaysLater = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
+
+            document.getElementById('checkin_date').value = today;
+            document.getElementById('checkout_date').value = threeDaysLater;
+            document.getElementById('checkin_date').setAttribute('min', today);
+            document.getElementById('checkout_date').setAttribute('min', today);
+
+            document.getElementById('city_input').value = 'Goa, India';
+            document.getElementById('checkin_date').dispatchEvent(new Event('change'));
+            document.getElementById('checkout_date').dispatchEvent(new Event('change'));
+
+            document.getElementById('checkin_date').addEventListener('change', function() {
+                const wrapper = this.closest('.input-field-wrapper');
+                wrapper.querySelector('.date-display').textContent = this.value ? new Date(this.value).toDateString() : 'Select Date';
+                document.getElementById('checkout_date').setAttribute('min', this.value);
+            });
+
+            document.getElementById('checkout_date').addEventListener('change', function() {
+                const wrapper = this.closest('.input-field-wrapper');
+                wrapper.querySelector('.date-display').textContent = this.value ? new Date(this.value).toDateString() : 'Select Date';
+            });
+
+            document.addEventListener('click', function(event) {
+                const modalEl = document.getElementById('room_guest_modal');
+                const wrapperEl = document.querySelector('.input-field-wrapper:nth-child(4)');
+                if (modalEl && !wrapperEl.contains(event.target) && !modalEl.classList.contains('hidden')) {
+                    modalEl.classList.add('hidden');
+                }
+            });
+
+            updateRoomGuestDisplay();
+            renderHotels(HOTEL_DATA);
+        };
+
+        // Mock search handler (re-renders all hotels for demonstration)
+        function handleHotelSearch(event) {
+            if (event) event.preventDefault();
+            const city = document.getElementById('city_input').value;
+            alertModal(`Searching for hotels in **${city}**... <br><br> Displaying the 60 featured results below.`, "Search Initiated");
+            renderHotels(HOTEL_DATA);
+        }
+    </script>
+</body>
+
+</html>

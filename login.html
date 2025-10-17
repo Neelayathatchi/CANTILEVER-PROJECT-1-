@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderGo - Login or Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <script>
+        // Custom Tailwind Configuration (matching previous pages)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wg-primary': '#03a6a6', // Teal
+                        'wg-dark': '#027a7a', // Dark Teal
+                        'wg-accent': '#F4A261', // Orange/Coral
+                        'wg-light-teal': '#f0ffff', // Very light teal
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        '3xl': '0 35px 60px -15px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            /* Background Image for immersive feel */
+            background-image: url('https://images.unsplash.com/photo-1498804103072-4d74996253c6?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(244, 247, 246, 0.85);
+            /* Light transparent overlay */
+            backdrop-filter: blur(5px);
+            z-index: -1;
+        }
+        /* Focus Style for inputs with Ring effect */
+        
+        .input-focus:focus {
+            border-color: #03a6a6;
+            box-shadow: 0 0 0 1px #03a6a6;
+            outline: none;
+            ring: 4px;
+            ring-color: rgba(3, 166, 166, 0.3);
+        }
+        /* Tab Styles */
+        
+        .tab-button {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab-button.active {
+            color: #027a7a;
+            font-weight: 700;
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #03a6a6;
+            border-radius: 2px 2px 0 0;
+            box-shadow: 0 -2px 5px rgba(3, 166, 166, 0.5);
+        }
+        /* Gradient Submit Buttons */
+        
+        .gradient-button-accent {
+            background: linear-gradient(90deg, #F4A261 0%, #D88E53 100%);
+        }
+        
+        .gradient-button-primary {
+            background: linear-gradient(90deg, #03a6a6 0%, #027a7a 100%);
+        }
+        
+        .gradient-button-accent:hover {
+            background: linear-gradient(90deg, #D88E53 0%, #F4A261 100%);
+        }
+        
+        .gradient-button-primary:hover {
+            background: linear-gradient(90deg, #027a7a 0%, #03a6a6 100%);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-20 shadow-lg" style="background-color: #03a6a6;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                        Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                    </a>
+                </div>
+
+                <nav class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Home</a>
+                    <a href="flight.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Flights</a>
+                    <a href="hotel.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Hotels</a>
+                    <a href="contact.html" class="text-white hover:text-gray-200 transition duration-150 ease-in-out font-medium">Support</a>
+                    <a href="login.html" class="nav-link bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition font-bold border-b-2 border-wg-accent">
+                        <i class="fas fa-user-circle mr-2 text-wg-accent"></i> Log In / Sign Up
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-xl shadow-2xl border-t-8 border-wg-primary overflow-hidden transform transition duration-500">
+
+            <div class="p-6 text-center border-b border-gray-100">
+                <h2 class="text-4xl font-extrabold tracking-tighter text-gray-800">
+                    Welcome to <span style="color: #03a6a6;">WanderGo</span>
+                </h2>
+                <p class="text-md text-gray-500 mt-2">Access your personalized travel dashboard.</p>
+            </div>
+
+            <div class="flex border-b border-gray-200 bg-wg-light-teal/50">
+                <button id="login-tab" class="flex-1 py-4 text-center text-lg tab-button active text-gray-600" onclick="switchTab('login')">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </button>
+                <button id="signup-tab" class="flex-1 py-4 text-center text-lg tab-button text-gray-600" onclick="switchTab('signup')">
+                    <i class="fas fa-user-plus mr-2"></i> Sign Up
+                </button>
+            </div>
+
+            <div class="p-8">
+
+                <div class="space-y-3 mb-6">
+                    <button class="w-full flex items-center justify-center p-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition">
+                        <i class="fab fa-google mr-2 text-xl text-red-500"></i> Continue with Google
+                    </button>
+                    <button class="w-full flex items-center justify-center p-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition">
+                        <i class="fab fa-facebook-f mr-2 text-xl text-blue-600"></i> Continue with Facebook
+                    </button>
+                    <div class="text-center text-sm text-gray-500 pt-2 relative">
+                        <hr class="absolute w-full top-0 border-gray-300">
+                        <span class="bg-white px-2 relative top-[-14px]">OR</span>
+                    </div>
+                </div>
+
+                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <label for="login-email" class="block text-sm font-semibold text-gray-700">Email Address</label>
+                        <input type="email" id="login-email" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-inner" required placeholder="name@example.com">
+                        <p id="login-email-error" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-semibold text-gray-700">Password</label>
+                        <input type="password" id="login-password" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-inner" required placeholder="••••••••">
+                        <p id="login-password-error" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <div class="flex items-center">
+                            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-wg-primary focus:ring-wg-dark border-gray-300 rounded">
+                            <label for="remember-me" class="ml-2 block text-gray-900">Remember me</label>
+                        </div>
+                        <a href="#" class="font-medium text-wg-accent hover:text-wg-dark transition">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="w-full gradient-button-accent text-white font-bold text-lg py-3 rounded-lg shadow-xl transition transform hover:scale-[1.005]">
+                        <i class="fas fa-lock mr-2"></i> Secure Log In
+                    </button>
+                </form>
+
+                <form id="signup-form" class="space-y-4 hidden" onsubmit="handleSignUp(event)">
+                    <div>
+                        <label for="signup-name" class="block text-sm font-semibold text-gray-700">Full Name</label>
+                        <input type="text" id="signup-name" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-inner" required placeholder="John Doe">
+                        <p id="signup-name-error" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label for="signup-email" class="block text-sm font-semibold text-gray-700">Email Address</label>
+                        <input type="email" id="signup-email" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-inner" required placeholder="newuser@wandergo.com">
+                        <p id="signup-email-error" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                    <div>
+                        <label for="signup-password" class="block text-sm font-semibold text-gray-700">Set Password</label>
+                        <input type="password" id="signup-password" class="w-full mt-1 p-3 border border-gray-300 rounded-lg input-focus shadow-inner" required placeholder="Minimum 8 characters">
+                        <p id="signup-password-error" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                    <div class="flex items-start">
+                        <input id="accept-terms" name="accept-terms" type="checkbox" class="mt-1 h-4 w-4 text-wg-primary focus:ring-wg-dark border-gray-300 rounded" required>
+                        <label for="accept-terms" class="ml-2 block text-sm text-gray-900">
+                            I agree to WanderGo's <a href="#" class="font-medium text-wg-primary hover:text-wg-dark transition">Terms & Privacy</a>.
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full gradient-button-primary text-white font-bold text-lg py-3 rounded-lg shadow-xl transition transform hover:scale-[1.005]">
+                        <i class="fas fa-user-plus mr-2"></i> Create Free Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <a href="#" class="text-3xl font-extrabold tracking-tight text-white">
+                    Wander<span class="font-light" style="color: #F4A261;">Go</span>
+                </a>
+                <p class="text-sm mt-4">&copy; 2025 WanderGo.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-lg hover:text-wg-primary"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">About Us</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Support</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-wg-primary">FAQ</a></li>
+                    <li><a href="#" class="hover:text-wg-primary">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4">Contact Us</h4>
+                <p class="text-sm">Email: info@wandergo.com</p>
+                <p class="text-xl font-bold text-white mt-2">1-800-999-0000</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-700 mt-8 pt-6 text-center">
+            <p class="text-xs text-gray-500">We Accept: Visa, MasterCard, PayPal</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- JAVASCRIPT LOGIC (Enhanced with Error Display) ---
+
+        function switchTab(tabName) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+
+            // Clear previous errors when switching tabs
+            clearErrors('login-form');
+            clearErrors('signup-form');
+
+            if (tabName === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+            } else if (tabName === 'signup') {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+            }
+        }
+
+        // Helper function to show errors
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(`${fieldId}-error`);
+            if (errorElement) {
+                errorElement.textContent = `❌ ${message}`;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        // Helper function to clear errors
+        function clearErrors(formId) {
+            document.querySelectorAll(`#${formId} .text-red-500`).forEach(el => el.classList.add('hidden'));
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            clearErrors('login-form');
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            let valid = true;
+
+            if (!email) {
+                showError('login-email', 'Email address is required.');
+                valid = false;
+            } else if (!email.includes('@') || !email.includes('.')) {
+                showError('login-email', 'Please enter a valid email address.');
+                valid = false;
+            }
+
+            if (!password) {
+                showError('login-password', 'Password is required.');
+                valid = false;
+            } else if (password.length < 6) {
+                showError('login-password', 'Password must be at least 6 characters.');
+                valid = false;
+            }
+
+            if (valid) {
+                // Mock success message with an alert
+                const username = email.split('@')[0];
+                alert(`✅ Success! Welcome back, ${username}. Redirecting to your dashboard...`);
+                // In a real app: window.location.href = '/dashboard';
+            }
+        }
+
+        function handleSignUp(event) {
+            event.preventDefault();
+            clearErrors('signup-form');
+
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const terms = document.getElementById('accept-terms').checked;
+
+            let valid = true;
+
+            if (!name) {
+                showError('signup-name', 'Full name is required.');
+                valid = false;
+            }
+            if (!email) {
+                showError('signup-email', 'Email address is required.');
+                valid = false;
+            } else if (!email.includes('@') || !email.includes('.')) {
+                showError('signup-email', 'Please enter a valid email address.');
+                valid = false;
+            }
+            if (!password) {
+                showError('signup-password', 'Password cannot be empty.');
+                valid = false;
+            } else if (password.length < 8) {
+                showError('signup-password', 'Password must be at least 8 characters.');
+                valid = false;
+            }
+            if (!terms) {
+                alert('You must accept the Terms & Privacy to create an account.');
+                valid = false;
+            }
+
+            if (valid) {
+                // Mock Registration Success
+                alert(`🎉 Congratulations, ${name}! Your WanderGo account has been created. Please log in now.`);
+
+                // Switch to login tab and pre-fill email for immediate login
+                switchTab('login');
+                document.getElementById('login-email').value = email;
+                document.getElementById('signup-form').reset();
+            }
+        }
+
+        // Initialize to Login tab on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('login');
+        });
+    </script>
+</body>
+
+</html>
